@@ -13,7 +13,7 @@ The user can specify which rules to apply, their order, and the maximum size for
 
 The method produces two files after applying each rule: one summarized list containing only the representative terms and one detailed list containing representative terms and the represented terms. The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
 
-In order to use the tool you can either download the .py files from this repository and run orsum.py or you can download from bioconda.
+In order to use the tool you can either download the .py files from this repository and run orsum.py or you can download from bioconda.</br>
 <code>
 conda install -c bioconda orsum
 </code></br>
