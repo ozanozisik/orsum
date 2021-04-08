@@ -12,7 +12,7 @@ The hierarchy among terms is inferred from the GMT file.
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.</br>
 
 The method produces two files after applying each rule: one summarized list containing only the representative terms and one detailed list containing representative terms and the represented terms. The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
-Example command:
+Example command:</br>
 <code>
 python orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 10 --outputFolder 'DemoOutput' --maxRepSize 2000
 </code></br>
