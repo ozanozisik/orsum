@@ -579,13 +579,13 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 		#Summary of summary
 		f=open(termSummaryFile2, 'w')
 
-		f.write('Representing term id\tRepresenting term name\tRepresenting term size\tRepresenting term rank')
+		f.write('Representing term id\tRepresenting term name\tRepresenting term size\tRepresenting term rank\tRepresented term number')
 		for tbsGsIDsNo in range(len(tbsGsIDsList)):
 			f.write('\t'+tbsFiles[tbsGsIDsNo]+ ' term rank')
 		f.write('\n')
 
 		for ts in termSummary:
-			f.write(ts[0]+'\t'+gsIDToGsNameDict[ts[0]]+'\t'+str(len(geneSetsDict[ts[0]]))+'\t'+str(ts[2]))
+			f.write(ts[0]+'\t'+gsIDToGsNameDict[ts[0]]+'\t'+str(len(geneSetsDict[ts[0]]))+'\t'+str(ts[2])+'\t'+str(len(ts[1])))
 
 			for tbsGsIDsNo in range(len(tbsGsIDsList)):
 				found=None
