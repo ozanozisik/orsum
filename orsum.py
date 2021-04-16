@@ -43,7 +43,6 @@ if(argsDict['maxRepSize']==None):
 	maxRepresentativeTermSize=5000
 else:
 	maxRepresentativeTermSize=int(argsDict['maxRepSize'])
-print(maxRepresentativeTermSize)
 
 #We read the GMT file and create term hiearchy for terms which have subset superset relationship. We don't use any prior information for hierarchy.
 #The GMT file contains one gene set/pathway at each line, with no header. A line starts with gene set code, then gene set name, then gene IDs, each separated by tab. As long as the gene IDs are consistent throughout the GMT file it doesn't matter which ID is used, we only check overlaps between different gene sets.<br />
@@ -71,7 +70,13 @@ else:
 #We read enrichment results to be summarized. These files must only contain ranked gene set IDs which are consistent with the GMT file.
 
 
-
+if len(set(hierarchyDict.keys()).intersection(set(geneSetsDict.keys())))==0:
+	if createHF:
+		print('The IDs in the hierarchy file do not match the IDs in the GMT file. As --createHF parameter is used something must have gone wrong during hiearchy file creation.' )
+		exit()
+	else:
+		print('The IDs in the hierarchy file do not match the IDs in the GMT file. Please check your command, the GMT file and the hierarchy file, and be sure that they are consistent.')
+		exit()
 
 
 tbsGsIDsList=[]
@@ -79,6 +84,9 @@ originalTermsSet=set()#Set of all the terms given in user supplied lists
 for tf in tbsFiles:
 	tbsGsIDs=readTBSListFile(tf)
 	tbsGsIDs=removeUnknownGeneSetsFromTBS(tbsGsIDs, geneSetsDict)
+	if len(tbsGsIDs)==0:
+		print('The IDs in an input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files, and be sure that they are consistent.')
+		exit()
 	tbsGsIDsList.append(tbsGsIDs)
 	originalTermsSet.update(tbsGsIDs)
 
