@@ -440,7 +440,7 @@ def createTermHierarchy(geneSetsDict, termHierarchyFile=None):
 				f.write(k+'\t'+v+'\n')
 			f.close()
 		except IOError:
-		    print("I/O error while writing hierarchy file.")
+			print("I/O error while writing hierarchy file.")
 
 	return hierarchyDict
 
@@ -459,7 +459,7 @@ def readHierarchyFile(termHierarchyFile):
 			hierarchyDict[tokens[0]]=tokens[1]
 		f.close()
 	except IOError:
-	    print("I/O error while reading hierarchy file.")
+		print("I/O error while reading hierarchy file.")
 	return hierarchyDict
 
 
@@ -492,7 +492,7 @@ def readTBSListFile(tbsFile):
 			tbsGsIDs.append(line.strip())
 		f.close()
 	except IOError:
-	    print("I/O error while reading a file to be summarized.")
+		print("I/O error while reading a file to be summarized.")
 
 	return tbsGsIDs
 
@@ -604,4 +604,4 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 
 	except IOError:
-	    print("I/O error while writing term summary file.")
+		print("I/O error while writing term summary file.")
