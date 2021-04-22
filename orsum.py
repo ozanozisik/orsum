@@ -13,20 +13,31 @@ This code gets the list of ranked gene set/pathway codes resulting from an enric
 """
 
 from termCombinationLib import *
-import argparse
+from argparse import ArgumentParser, SUPPRESS
 import os
 
 
-
-parser = argparse.ArgumentParser(description='This tool summarizes enrichment results')
-parser.add_argument('--gmt', required=True, help='path for the the GMT file')
-parser.add_argument('--hierarchyFile', required=True, help='path for the hierarchy file')
-parser.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
-parser.add_argument('--files', required=True, nargs='+', help='paths for the enrichment result files')
-parser.add_argument('--outputFolder', required=True, help='paths for the enrichment result files')
-parser.add_argument('--rules', nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first.')
-parser.add_argument('--maxRepSize', help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms')
-parser.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
+parser = ArgumentParser(description='This tool summarizes enrichment results', add_help=False)
+required = parser.add_argument_group('required arguments')
+optional = parser.add_argument_group('optional arguments')
+# Add back help
+optional.add_argument(
+    '-h',
+    '--help',
+    action='help',
+    default=SUPPRESS,
+    help='show this help message and exit'
+)
+# required arguments
+required.add_argument('--gmt', required=True, help='path for the GMT file')
+required.add_argument('--hierarchyFile', required=True, help='path for the hierarchy file')
+required.add_argument('--files', required=True, nargs='+', help='paths for the enrichment result files')
+required.add_argument('--outputFolder', required=True, help='paths for the enrichment result files')
+# optional arguments
+optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
+optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first.')
+optional.add_argument('--maxRepSize', type=int, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms')
+optional.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
 args = parser.parse_args()
 argsDict=vars(args)
 #print(argsDict)
