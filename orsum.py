@@ -32,11 +32,11 @@ optional.add_argument(
 required.add_argument('--gmt', required=True, help='path for the GMT file')
 required.add_argument('--hierarchyFile', required=True, help='path for the hierarchy file')
 required.add_argument('--files', required=True, nargs='+', help='paths for the enrichment result files')
-required.add_argument('--outputFolder', required=True, help='paths for the enrichment result files')
 # optional arguments
+optional.add_argument('--outputFolder', default=".", help='path for the output result files. If it is not specify, results are write in the current directory.')
 optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
-optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first.')
-optional.add_argument('--maxRepSize', type=int, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms')
+optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first. By default, all the rules arerun from 1 to 10.')
+optional.add_argument('--maxRepSize', type=int, default=5000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 5000')
 optional.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
 args = parser.parse_args()
 argsDict=vars(args)
@@ -50,10 +50,7 @@ createHF=argsDict['createHF']
 tbsFiles=argsDict['files']
 outputAll=argsDict['outputAll']
 
-if(argsDict['maxRepSize']==None):
-	maxRepresentativeTermSize=5000
-else:
-	maxRepresentativeTermSize=int(argsDict['maxRepSize'])
+maxRepresentativeTermSize=int(argsDict['maxRepSize'])
 
 #We read the GMT file and create term hiearchy for terms which have subset superset relationship. We don't use any prior information for hierarchy.
 #The GMT file contains one gene set/pathway at each line, with no header. A line starts with gene set code, then gene set name, then gene IDs, each separated by tab. As long as the gene IDs are consistent throughout the GMT file it doesn't matter which ID is used, we only check overlaps between different gene sets.<br />
@@ -136,11 +133,8 @@ else:
 
 
 outputFolder=argsDict['outputFolder']
-if outputFolder==None:
-	outputFolder=os.curdir+os.sep
-else:
-	if outputFolder[-1]!=os.sep:
-		outputFolder=outputFolder+os.sep
+if outputFolder[-1]!=os.sep:
+	outputFolder=outputFolder+os.sep
 
 if not os.path.isdir(outputFolder):
 	os.mkdir(outputFolder)
