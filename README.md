@@ -9,7 +9,7 @@ orsum, which stands for over-representation summary, is a tool for the summary o
 
 As input, orsum takes a GMT file contaning the gene sets and file(s) containing the enriched term IDs.
 The hierarchy among terms is inferred from the GMT file..</br>
-The file containing the enriched term IDs must contain one ID per line and must be sorted, with the most significant term at top. An example is given below:.</br>
+The file containing the enriched term IDs must contain one ID per line and must be sorted, with the most significant term at top.</br>
 
 
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.</br>
