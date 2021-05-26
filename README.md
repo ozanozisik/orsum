@@ -24,7 +24,7 @@ orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --f
 </code></br>
 
 Full list of rules are given below:
-<ul>
+<ol>
 <li>Terms from multiple results are matched</li>
 <li>Superterm covers less significant subterm</li>
 <li>Sibling terms whose parent is also in the list are represented by the parent</li>
@@ -35,7 +35,7 @@ Full list of rules are given below:
 <li>Sibling terms are represented by the parent (even if the parent is not in the list)</li>
 <li>Cousin terms (they have a common grandparent) are represented by the grandparent (even if the grandparent is not in the list)</li>
 <li>Aunt - nephew terms (one’s parent is other’s grandparent) are represented by the parent/grandparent term (even if the parent/grandparent is not in the list)</li>
-</ul>
+</ol>
 </br>
 
 
