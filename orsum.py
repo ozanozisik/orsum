@@ -29,11 +29,11 @@ optional.add_argument(
     help='show this help message and exit'
 )
 # required arguments
-required.add_argument('--gmt', required=True, help='path for the GMT file')
-required.add_argument('--hierarchyFile', required=True, help='path for the hierarchy file')
-required.add_argument('--files', required=True, nargs='+', help='paths for the enrichment result files')
+required.add_argument('--gmt', required=True, help='Path for the GMT file.')
+required.add_argument('--hierarchyFile', required=True, help='Path for the hierarchy file. It is created if the file does not exist.')
+required.add_argument('--files', required=True, nargs='+', help='Paths for the enrichment result files.')
 # optional arguments
-optional.add_argument('--outputFolder', default=".", help='path for the output result files. If it is not specify, results are write in the current directory.')
+optional.add_argument('--outputFolder', default=".", help='Path for the output result files. If it is not specified, results are written to the current directory.')
 optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
 optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first. By default, all the rules arerun from 1 to 10.')
 optional.add_argument('--maxRepSize', type=int, default=5000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 5000')
