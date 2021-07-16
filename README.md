@@ -31,7 +31,7 @@ usage: orsum.py [-h] --gmt GMT --hierarchyFile HIERARCHYFILE [--createHF]
 </br>
 <ul>
 <li>--gmt: Path for the GMT file. (required)
-<li>--hierarchyFile: Path for the hierarchy file. It will be created if the file does not exist. (required)
+<li>--hierarchyFile: Path for the hierarchy file. It is created if the file does not exist. (required)
 <li>--files: Paths for the enrichment result files. (required)
 <li>--outputFolder: Path for the output result files. If it is not specified, results are written in the current directory. (optional, default=".")
 <li>--createHF: Forces the creation of new hierarchy file, otherwise orsum tries to read, if absent creates it. (optional)
