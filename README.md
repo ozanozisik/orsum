@@ -7,9 +7,12 @@ orsum, which stands for over-representation summary, is a tool for the summary o
 <li>Subterm with more representative power covers less significant superterm</li>
 </ul>
 
-As input, orsum takes a GMT file contaning the gene sets and file(s) containing the enriched term IDs.
-The hierarchy among terms is inferred from the GMT file..</br>
+As input, orsum takes a <a href=https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29>GMT file</a> contaning the gene sets, and one or more files containing the enriched term IDs.</br>
+
+The hierarchy among terms is inferred from the GMT file. The GMT file for the annotations might be found from multiple sources, for consistency, if it is available, it is better to download the exact GMT file that is used in enrichment analysis. If it is not convenient, another option is getting from <a href=https://biit.cs.ut.ee/gprofiler/static/gprofiler_hsapiens.name.zip>this g:Profiler data source link</a>. This zip file contains GMT for Reactome, GO:BP, GO:MF and GO:CC which you can use with orsum.</br></br>
 The file containing the enriched term IDs must contain one ID per line and must be sorted, with the most significant term at top.</br>
+</br>
+
 
 
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.</br>
@@ -20,10 +23,33 @@ In order to use the tool you can either download the .py files from this reposit
 <code>
 conda install -c bioconda orsum
 </code></br>
+</br>
+</br>
+usage: orsum.py [-h] --gmt GMT --hierarchyFile HIERARCHYFILE [--createHF]
+                --files FILES [FILES ...] --outputFolder OUTPUTFOLDER
+                [--rules [RULES [RULES ...]]] [--maxRepSize MAXREPSIZE]
+</br>
+<ul>
+<li>--gmt: Path for the GMT file. (required)
+<li>--hierarchyFile: Path for the hierarchy file. It will be created if the file does not exist. (required)
+<li>--files: Paths for the enrichment result files. (required)
+<li>--outputFolder: Path for the output result files. If it is not specified, results are written in the current directory. (optional, default=".")
+<li>--createHF: Forces the creation of new hierarchy file, otherwise orsum tries to read, if absent creates it. (optional)
+<li>--rules: List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first. By default, all the rules are run from 1 to 10. (optiona)
+<li>--maxRepSize: The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 5000 but we advise using a lower number, the default might change to 2000 soon. (optional, default=5000)
+<li>--outputAll: When this option is used, a summary file is created after applying each rule, otherwise only final summary is created. (optional)
+</ul>
+</br>
 
 Example command:</br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 10 --outputFolder 'DemoOutput' --maxRepSize 2000
+orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --hierarchy 'hierarchyDict-GOBP.tsv' --files 'Enrichment-GOBP.csv' --outputFolder 'DemoOutputGOBP'
+</code></br>
+
+
+Example command:</br>
+<code>
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 10 --outputFolder 'DemoOutputReac' --maxRepSize 2000
 </code></br>
 
 Full list of rules are given below:
