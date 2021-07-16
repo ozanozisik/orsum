@@ -10,7 +10,7 @@ orsum, which stands for over-representation summary, is a tool for the summary o
 As input, orsum takes a <a href=https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29>GMT file</a> contaning the gene sets, and one or more files containing the enriched term IDs.</br>
 
 The hierarchy among terms is inferred from the GMT file. The GMT file for the annotations might be found from multiple sources, for consistency, if it is available, it is better to download the exact GMT file that is used in enrichment analysis. If it is not convenient, another option is getting from <a href=https://biit.cs.ut.ee/gprofiler/static/gprofiler_hsapiens.name.zip>this g:Profiler data source link</a>. This zip file contains GMT for Reactome, GO:BP, GO:MF and GO:CC which you can use with orsum.</br></br>
-The file containing the enriched term IDs must contain one ID per line and must be sorted, with the most significant term at top.</br>
+The file containing the enriched term IDs (like GO:0008150 or REAC:R-HSA-1640170) must contain one ID per line and must be sorted, with the most significant term at top.</br>
 </br>
 
 
