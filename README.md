@@ -54,7 +54,7 @@ orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --f
 
 Full list of rules are given below:
 <ol>
-<li>Different terms containing same genes are unified, terms from multiple results are matched</li>
+<li>Different terms containing exactly the same genes are unified, terms from multiple results are matched</li>
 <li>Superterm covers less significant subterm</li>
 <li>Sibling terms whose parent is also in the list are represented by the parent</li>
 <li>Cousin terms (they have a common grandparent) are represented by the grandparent term which is in the list</li>
