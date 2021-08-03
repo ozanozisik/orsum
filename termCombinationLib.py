@@ -8,7 +8,7 @@ Created on Mon Nov 30 13:57:07 2020
 """
 
 import numpy as np
-
+import os
 
 ##############################################################################
 
@@ -549,9 +549,9 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		f.write('Representing term id\tRepresenting term name\tRepresenting term rank')
 		for tbsGsIDsNo in range(len(tbsGsIDsList)):
-			f.write('\t'+tbsFiles[tbsGsIDsNo]+ ' term id')
-			f.write('\t'+tbsFiles[tbsGsIDsNo]+ ' term name')
-			f.write('\t'+tbsFiles[tbsGsIDsNo]+ ' term rank')
+			f.write('\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+ ' term id')
+			f.write('\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+ ' term name')
+			f.write('\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+ ' term rank')
 		f.write('\n')
 
 		for ts in termSummary:
@@ -584,7 +584,7 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		f.write('Representing term id\tRepresenting term name\tRepresenting term size\tRepresenting term rank\tRepresented term number')
 		for tbsGsIDsNo in range(len(tbsGsIDsList)):
-			f.write('\t'+tbsFiles[tbsGsIDsNo]+ ' term rank')
+			f.write('\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+ ' term rank')
 		f.write('\n')
 
 		for ts in termSummary:

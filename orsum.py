@@ -13,6 +13,7 @@ This code gets the list of ranked gene set/pathway codes resulting from an enric
 """
 
 from termCombinationLib import *
+from plotFunctions import *
 from argparse import ArgumentParser, SUPPRESS
 import os
 
@@ -168,4 +169,8 @@ for i in range(len(rulesToApply)):
 
 	if(outputAll or i==len(rulesToApply)-1):
 		writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Detailed.tsv', outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv')
+
+	if(i==len(rulesToApply)-1):
+		orsum_plot(outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv', outputFolder, 50)
+
 	processStep=processStep+1
