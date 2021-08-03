@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Created on Mon Nov 30 13:57:07 2020
 
@@ -42,11 +45,11 @@ def applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRep
 def recurringTermsUnified(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Terms part of more than one list are unified.
+	This rule is run by default.
 	'''
-	if((gsID==gsID2) or (geneSetsDict[gsID]==geneSetsDict[gsID2])):
+	if(gsID==gsID2):
 		#This process merges recurring terms that come from multiple
-		#enrichment results given as input, or gene sets that contain
-		#the same genes.
+		#enrichment results given as input
 		for reprTermsOfEaten in termSummary[idNo2][1]:
 			if reprTermsOfEaten not in termSummary[idNo][1]:
 				termSummary[idNo][1].append(reprTermsOfEaten)
@@ -59,7 +62,7 @@ def recurringTermsUnified(termSummary, geneSetsDict, hierarchyDict, originalTerm
 def supertermRepresentsSubterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Superterms with more significance represent their subterms with
-	less significance.
+	less significance (this also unifies equal terms).
 	'''
 	geneSet1=geneSetsDict[gsID]
 	geneSet2=geneSetsDict[gsID2]

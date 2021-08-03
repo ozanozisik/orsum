@@ -35,8 +35,8 @@ usage: orsum.py [-h] --gmt GMT --hierarchyFile HIERARCHYFILE [--createHF]
 <li>--files: Paths for the enrichment result files. (required)
 <li>--outputFolder: Path for the output result files. If it is not specified, results are written to the current directory. (optional, default=".")
 <li>--createHF: Forces the creation of new hierarchy file, otherwise orsum tries to read, if absent creates it. (optional)
-<li>--rules: List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first. By default, all the rules are run from 1 to 10. (optiona)
-<li>--maxRepSize: The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 5000 but we advise using a lower number, the default might change to 2000 soon. (optional, default=5000)
+<li>--rules: List of ordered numbers of the rules to apply while summarizing. By default, all the rules are run from 1 to 9. (optional)
+<li>--maxRepSize: The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. (optional, default=2000)
 <li>--outputAll: When this option is used, a summary file is created after applying each rule, otherwise only final summary is created. (optional)
 </ul>
 </br>
@@ -49,13 +49,12 @@ orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --hierarchy 'hierarchyDict-GOBP.tsv' --
 
 Example command:</br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 10 --outputFolder 'DemoOutputReac' --maxRepSize 2000
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 --outputFolder 'DemoOutputReac' --maxRepSize 2000
 </code></br>
 
 Full list of rules are given below:
 <ol>
-<li>Different terms containing exactly the same genes are unified, terms from multiple results are matched</li>
-<li>Superterm covers less significant subterm</li>
+<li>Superterm covers less significant subterm. This includes terms with exactly the same genes.</li>
 <li>Sibling terms whose parent is also in the list are represented by the parent</li>
 <li>Cousin terms (they have a common grandparent) are represented by the grandparent term which is in the list</li>
 <li>Aunt - nephew terms (one’s parent is other’s grandparent) are represented by the parent/grandparent term which is in the list</li>

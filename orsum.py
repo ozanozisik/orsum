@@ -35,8 +35,8 @@ required.add_argument('--files', required=True, nargs='+', help='Paths for the e
 # optional arguments
 optional.add_argument('--outputFolder', default=".", help='Path for the output result files. If it is not specified, results are written to the current directory.')
 optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
-optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. First rule is numbered 1. It should be run first. By default, all the rules arerun from 1 to 10.')
-optional.add_argument('--maxRepSize', type=int, default=5000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 5000')
+optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 9 are run.')
+optional.add_argument('--maxRepSize', type=int, default=2000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 2000')
 optional.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
 args = parser.parse_args()
 argsDict=vars(args)
@@ -107,17 +107,17 @@ termSummary=initializeTermSummary(tbsGsIDsList)
 rulesToUseNo=argsDict['rules']
 
 allRules=[
-	(recurringTermsUnified,'Same terms in multiple lists and gene sets containing same genes are unified'),
-	(supertermRepresentsSubterm, 'Super <- Sub (w less Rank) || Superterms represent their less significant / lower ranked subterms'),
-	(commonParentInListRepresentsTerms, 'Parent in list || Terms with a common parent are represented by the parent if the parent is in the original list'),
-	(commonGrandparentInListRepresentsTerms, 'Grandparent in list || Terms with a common grandparent are represented by the grandparent if the grandparent is in the original list'),
-	(commonParentGrandparentInListRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term if it is in the original list'),
-	(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w less rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.'),
-	(subtermRepresentsSlightlyLowerRankedSuperterm, 'Sub <- Super (less Rank) || Subterms represent their slightly lower ranked superterms. Rank tolerance is set to 1.'),
-	(commonParentRepresentsTerms, 'Parent || Terms with a common parent are represented by the parent (even if the parent is not in the original list)'),
-	(commonGrandparentRepresentsTerms, 'Grandparent || Terms with a common grandparent are represented by the grandparent (even if the grandparent is not in the original list)'),
-	(commonParentGrandparentRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term (even if it is not in the original list)')
+	(supertermRepresentsSubterm, 'Super <- Sub (w less Rank) || Superterms represent their less significant / lower ranked subterms', 1),
+	(commonParentInListRepresentsTerms, 'Parent in list || Terms with a common parent are represented by the parent if the parent is in the original list', 2),
+	(commonGrandparentInListRepresentsTerms, 'Grandparent in list || Terms with a common grandparent are represented by the grandparent if the grandparent is in the original list', 3),
+	(commonParentGrandparentInListRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term if it is in the original list', 4),
+	(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w less rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.', 5),
+	(subtermRepresentsSlightlyLowerRankedSuperterm, 'Sub <- Super (less Rank) || Subterms represent their slightly lower ranked superterms. Rank tolerance is set to 1.', 6),
+	(commonParentRepresentsTerms, 'Parent || Terms with a common parent are represented by the parent (even if the parent is not in the original list)', 7),
+	(commonGrandparentRepresentsTerms, 'Grandparent || Terms with a common grandparent are represented by the grandparent (even if the grandparent is not in the original list)', 8),
+	(commonParentGrandparentRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term (even if it is not in the original list)', 9)
 ]
+
 
 if rulesToUseNo==None:
 	rulesToApply=allRules
@@ -125,11 +125,14 @@ else:
 	try:
 		rulesToApply=[allRules[int(r)-1] for r in rulesToUseNo]
 	except IndexError:
-		print('For the rules parameter, numbers between 1-10 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
 		exit()
 	except ValueError:
-		print('For the rules parameter, numbers between 1-10 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
 		exit()
+
+
+multipleListsUnifyRule=(recurringTermsUnified,'Same terms in multiple lists are unified')
 
 
 outputFolder=argsDict['outputFolder']
@@ -144,9 +147,17 @@ if(len(tbsFiles)==1):
 	print('Initial term number:',len(termSummary),'\n')
 else:
 	print('Initial term number (recurring terms in different lists are not merged yet, each one is counted):',len(termSummary),'\n')
+
+	#Applying default rule to unify same terms in multiple lists
+	print(multipleListsUnifyRule[1])
+	termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, multipleListsUnifyRule[0])
+	print('Representing term number:',len(termSummary),'\n')
+
 processStep=1
+#strAppliedRuleNos=''
 for i in range(len(rulesToApply)):
 	print(rulesToApply[i][1])
+	#strAppliedRuleNos=strAppliedRuleNos+str(rulesToApply[i][2])
 	termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[i][0])
 
 	#Applying previously applied rules again
@@ -156,5 +167,5 @@ for i in range(len(rulesToApply)):
 	print('Representing term number:',len(termSummary),'\n')
 
 	if(outputAll or i==len(rulesToApply)-1):
-		writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(processStep)+'-Detailed.tsv', outputFolder+'termSummary'+str(processStep)+'-Summary.tsv')
+		writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Detailed.tsv', outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv')
 	processStep=processStep+1
