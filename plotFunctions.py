@@ -8,7 +8,6 @@ Created on April 2021.
 @author: Morgane T.
 
 Create plots for orsum results
-
 """
 
 # LIBRARIES

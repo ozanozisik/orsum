@@ -9,7 +9,6 @@ Created on Wed Mar 24 13:55:58 2021
 
 Gene Set Summary
 This code gets the list of ranked gene set/pathway codes resulting from an enrichment analysis and summarizes them at different levels applying more relaxed rules at each step.
-
 """
 
 from termCombinationLib import *
@@ -17,6 +16,8 @@ from plotFunctions import *
 from argparse import ArgumentParser, SUPPRESS
 import os
 
+
+##Parse arguments
 
 parser = ArgumentParser(description='This tool summarizes enrichment results', add_help=False)
 required = parser.add_argument_group('required arguments')
@@ -44,26 +45,27 @@ argsDict=vars(args)
 #print(argsDict)
 
 
-
 gmtPath=argsDict['gmt']
 termHierarchyFile=argsDict['hierarchyFile']
 createHF=argsDict['createHF']
 tbsFiles=argsDict['files']
 outputAll=argsDict['outputAll']
-
 maxRepresentativeTermSize=int(argsDict['maxRepSize'])
+rulesToUseNo=argsDict['rules']
+outputFolder=argsDict['outputFolder']
 
-#We read the GMT file and create term hiearchy for terms which have subset superset relationship. We don't use any prior information for hierarchy.
-#The GMT file contains one gene set/pathway at each line, with no header. A line starts with gene set code, then gene set name, then gene IDs, each separated by tab. As long as the gene IDs are consistent throughout the GMT file it doesn't matter which ID is used, we only check overlaps between different gene sets.<br />
-#Reactome and GO:BP GMT files are provided in the demo. You can obtain new versions from gProfiler data sources tab.<br />
-#As creation of hierarchy file takes time for GO, you can create it once and use it.<br />
-#Hierarchy files are provided in the demo.
+
+#Read the GMT file and create term hiearchy for terms which have subset
+#superset relationship. No prior information is used for hierarchy.
+#The GMT file contains one gene set/pathway at each line, with no header.
+#A line starts with gene set code, then gene set name, then gene IDs, each
+#separated by tab. As long as the gene IDs are consistent throughout the GMT
+#file it doesn't matter which ID is used, only the overlaps between
+#different gene sets are checked.
+
 geneSetsDict, gsIDToGsNameDict=readGmtFile(gmtPath)
 
-
-#Based on the option provided by the user creates or reads existing hierarchy
-#file. If IOError occurs the file is created.
-
+#Based on the option provided by the user, create or read hierarchy file.
 if(createHF):#createHF is boolean
 	#Create term hiearchy, save it to a file, and use it in the rest of the run
 	hierarchyDict=createTermHierarchy(geneSetsDict, termHierarchyFile)
@@ -76,9 +78,8 @@ else:
 		hierarchyDict=createTermHierarchy(geneSetsDict, termHierarchyFile)
 
 
-#We read enrichment results to be summarized. These files must only contain ranked gene set IDs which are consistent with the GMT file.
-
-
+#Read enrichment results to be summarized. These files must only contain
+#ranked gene set IDs which are consistent with the GMT file.
 if len(set(hierarchyDict.keys()).intersection(set(geneSetsDict.keys())))==0:
 	if createHF:
 		print('The IDs in the hierarchy file do not match the IDs in the GMT file. As --createHF parameter is used something must have gone wrong during hiearchy file creation.' )
@@ -102,11 +103,7 @@ for tf in tbsFiles:
 termSummary=initializeTermSummary(tbsGsIDsList)
 
 
-
-#rulesToApply is a list of tuples that contains function names for the rules and their explanations. Rules are applied one by one according to this list. After application of each rule, previously applied rules are applied again starting from the first.
-
-rulesToUseNo=argsDict['rules']
-
+#Rules are listed here as tuples (function name, explanation, rule no).
 allRules=[
 	(supertermRepresentsSubterm, 'Super <- Sub (w less Rank) || Superterms represent their less significant / lower ranked subterms', 1),
 	(commonParentInListRepresentsTerms, 'Parent in list || Terms with a common parent are represented by the parent if the parent is in the original list', 2),
@@ -119,7 +116,11 @@ allRules=[
 	(commonParentGrandparentRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term (even if it is not in the original list)', 9)
 ]
 
+#This rule is run by default if there are multiple lists of results
+multipleListsUnifyRule=(recurringTermsUnified,'Same terms in multiple lists are unified')
 
+#rulesToApply contains the rules to be applied, based on arguments (by default
+#all rules are applied)
 if rulesToUseNo==None:
 	rulesToApply=allRules
 else:
@@ -133,10 +134,12 @@ else:
 		exit()
 
 
-multipleListsUnifyRule=(recurringTermsUnified,'Same terms in multiple lists are unified')
+
+#Rules are applied one by one.
+#After application of each rule, previously applied rules are applied again
+#starting from the first.
 
 
-outputFolder=argsDict['outputFolder']
 if outputFolder[-1]!=os.sep:
 	outputFolder=outputFolder+os.sep
 
@@ -149,19 +152,18 @@ if(len(tbsFiles)==1):
 else:
 	print('Initial term number (recurring terms in different lists are not merged yet, each one is counted):',len(termSummary),'\n')
 
-	#Applying default rule to unify same terms in multiple lists
+	#Apply multipleListsUnifyRule to unify the same terms from multiple lists
 	print(multipleListsUnifyRule[1])
 	termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, multipleListsUnifyRule[0])
 	print('Representing term number:',len(termSummary),'\n')
 
 processStep=1
-#strAppliedRuleNos=''
 for i in range(len(rulesToApply)):
+	#Apply rule
 	print(rulesToApply[i][1])
-	#strAppliedRuleNos=strAppliedRuleNos+str(rulesToApply[i][2])
 	termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[i][0])
 
-	#Applying previously applied rules again
+	#Apply previously applied rules again
 	for j in range(0,i):
 		termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[j][0])
 
