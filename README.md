@@ -49,7 +49,7 @@ orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --hierarchy 'hierarchyDict-GOBP.tsv' --
 
 Example command:</br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 --outputFolder 'DemoOutputReac' --maxRepSize 2000
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 3 4 8 9 --outputFolder 'OutputReac'
 </code></br>
 
 Full list of rules are given below:
