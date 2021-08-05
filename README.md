@@ -17,7 +17,7 @@ The file containing the enriched term IDs (e.g. GO:0008150 or REAC:R-HSA-1640170
 
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.</br>
 
-The method produces two files after applying each rule: one summarized list containing only the representative terms and one detailed list containing representative terms and the represented terms. The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
+The method produces two TSV files: i) a summarized list containing only the representative terms and their ranks ii) a detailed list containing representative terms and the represented terms. The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
 
 In order to use the tool you can either download the .py files from this repository and run orsum.py or you can download from bioconda.</br>
 <code>
