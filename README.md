@@ -13,11 +13,12 @@ The hierarchy among terms is inferred from the GMT file. The GMT file for the an
 The file containing the enriched term IDs (e.g. GO:0008150 or REAC:R-HSA-1640170) must contain one ID per line and must be sorted, with the most significant term at top.</br>
 </br>
 
-
-
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.</br>
+The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
 
-The method produces two TSV files: i) a summarized list containing only the representative terms and their ranks ii) a detailed list containing representative terms and the represented terms. The representative terms get their rank from the best ranked term they represent, and the resulting terms are ordered by this rank.</br>
+orsum produces two TSV files: i) a summarized list containing only the representative terms and their ranks, ii) a detailed list containing representative terms and the represented terms. </br>
+orsum also produces three figures presenting i) the representative terms and how many terms they represent, ii) the ranks of the representative terms (for each enrichment result if multiple enrichment results are input), iii) represented term size vs rank. </br>
+
 
 In order to use the tool you can either download the .py files from this repository and run orsum.py or you can download from bioconda.</br>
 <code>
