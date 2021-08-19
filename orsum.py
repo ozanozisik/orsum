@@ -106,7 +106,7 @@ termSummary=initializeTermSummary(tbsGsIDsList)
 #Rules are listed here as tuples (function name, explanation, rule no).
 allRules=[
 	(supertermRepresentsLessSignificantSubterm, 'Super <- Sub (w worse rank) || Superterms represent their less significant subterms. This includes terms with exactly the same genes.', 1),
-	(subtermRepresentsLessSignificantSimilarSuperterm, 'Sub <- Super (w worse rank, subterm is 75% of superterm) || Subterms with more significance represent their superterms whose geneset is at least 75% constitued by the subterm', 2),
+	(subtermRepresentsLessSignificantSimilarSuperterm, 'Sub <- Super (w worse rank, subterm is 75% of superterm) || Subterms with more significance represent their superterms whose gene list is at least 75% composed of the subterm', 2),
 	(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w worse rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.', 3),
 	(commonSupertermInListRepresentsSubtermsWithLessRepresentativePower, 'Common Super <- (Sub Sub) (w less or equal representative power) || A superterm represents its two subterms that have less representative power', 4),
 	(supertermRepresentsSubtermLargerThanMaxRep, 'Large Super <- Large Sub || Superterms larger than maxRepSize represent their less significant subterms which are also larger than maxRepSize', 5)
