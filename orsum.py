@@ -37,7 +37,7 @@ required.add_argument('--files', required=True, nargs='+', help='Paths for the e
 # optional arguments
 optional.add_argument('--outputFolder', default=".", help='Path for the output result files. If it is not specified, results are written to the current directory.')
 optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
-optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 9 are run.')
+optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 5 are run.')
 optional.add_argument('--maxRepSize', type=int, default=2000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 2000')
 optional.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
 args = parser.parse_args()
@@ -123,10 +123,10 @@ else:
 	try:
 		rulesToApply=[allRules[int(r)-1] for r in rulesToUseNo]
 	except IndexError:
-		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
 		exit()
 	except ValueError:
-		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
 		exit()
 
 
