@@ -102,7 +102,7 @@ def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, hierarc
 def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Subterms with more significance represent their superterms whose gene list
-	is at least 75% constitued by the subterm
+	is at least 75% composed of the subterm
 	'''
 
 	geneSet1=geneSetsDict[gsID]#Supposed to be subset and representative
