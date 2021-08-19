@@ -5,7 +5,6 @@ As input, orsum takes a <a href=https://software.broadinstitute.org/cancer/softw
 
 The hierarchy among terms is inferred from the GMT file. The GMT file for the annotations might be found from multiple sources, for consistency, if it is available, it is better to download the exact GMT file that is used in enrichment analysis. If you already use <a href=https://biit.cs.ut.ee/gprofiler/gost>g:Profiler</a> for enrichment or GMT file was not available from your enrichment tool, getting from <a href=https://biit.cs.ut.ee/gprofiler/static/gprofiler_hsapiens.name.zip>this g:Profiler data source link</a> is an option. This zip file contains GMT for Reactome, GO:BP, GO:MF and GO:CC which you can use with orsum.<br><br>
 The file containing the enriched term IDs (e.g. GO:0008150 or REAC:R-HSA-1640170) must contain one ID per line and must be sorted, with the most significant term at top.<br>
-<br>
 
 The user can specify which rules to apply, their order, and the maximum size for a term to be used as a representative term.<br>
 
@@ -15,7 +14,7 @@ Throughout the orsum run, the representative terms get their rank from the best 
 orsum produces multiple files as output:<br>
 <ul>
 	<li> An HTML file which presents the summarized results - the list of representative terms - with an option to click on each term to see the represented terms.
-	<li> Two TSV files (-Summary.tsv, -Detailed.tsv) which contain the information in the HTML file in different format, with some extras, like term size. -Summary.tsv file is very useful for comparing multiple enrichment results. 
+	<li> Two TSV files (-Summary.tsv, -Detailed.tsv) which contain the information in the HTML file in different formats, with some extras, like term size. -Summary.tsv file contains only representative terms while -Detailed.tsv additionally contains representative terms. -Summary.tsv file is very useful for getting an overview when comparing multiple enrichment results.
 	<li> Three figures for<br>
 		<ul>
 			<li> the representative terms and how many terms they represent
