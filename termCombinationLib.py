@@ -16,25 +16,46 @@ import os
 
 def applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, process):
 	'''
-	This function is called to apply a rule on term pairs. The function
-	of the rule to be applied is given as parameter (process).
+	This function is called to apply a rule on term pairs.
+	The function of the rule to be applied is given as parameter (process).
 	'''
 
+	#Starting with the top terms, term pairs are picked from the termSummary
+	#and the rule is applied to them.
 	for idNo in range(len(termSummary)-1):
 		gsID=termSummary[idNo][0]
-		if gsID!=-1:
+		if gsID!=-1:#Check if the term is still a representative term
 			for idNo2 in range(idNo+1, len(termSummary)):
 				gsID2=termSummary[idNo2][0]
-				if  gsID2!=-1:
+				if  gsID2!=-1:#Check if the term is still a representative term
 					termSummary=process(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2)
+
+	#Remove terms that are represented by other terms
 	termSummary=[e for e in termSummary if e[0]!=-1]
-	termSummary.sort(key=lambda x: x[2])#Sort based on rank/score
+	#Sort termSummary by rank (first term has the best/lowest rank)
+	termSummary.sort(key=lambda x: x[2])
+
 	return termSummary
 
 
 ##############################################################################
 ##############################################################################
 ##############################################################################
+
+'''
+General description on how rules work:
+
+Rules take information on two terms from the termSummary.
+These two terms are evaluated for their fitness to the rule.
+If term A will represent term B, the terms represented by term B
+(this includes itself) are appended to the list of terms represented by
+term A. Term B's gsID which is stored in termSummary[idNoB][0] is set to -1
+to mark that it is not a representative term any more. gsID information is
+not lost because it is already copied under term A (termSummary[idNoA][1]).
+
+
+'''
+
 
 #In combination methods sending gsIDs as parameters is important
 #because when a method assigns -1 in place of gsID, this affects following
@@ -44,327 +65,145 @@ def applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRep
 
 def recurringTermsUnified(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
-	Terms part of more than one list are unified.
-	This rule is run by default.
+	Recurring terms coming from multiple lists are unified.
+	This rule is run by default if there are multiple enrichment results.
+	This rule is hidden from the user.
 	'''
 	if(gsID==gsID2):
-		#This process merges recurring terms that come from multiple
-		#enrichment results given as input
-		for reprTermsOfEaten in termSummary[idNo2][1]:
-			if reprTermsOfEaten not in termSummary[idNo][1]:
-				termSummary[idNo][1].append(reprTermsOfEaten)
+		#Terms represented by the second term are copied under the first term
+		for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+			if reprTermsOfCoveredTerm not in termSummary[idNo][1]:
+				termSummary[idNo][1].append(reprTermsOfCoveredTerm)
 		termSummary[idNo2][0]=-1
 		termSummary[idNo][2]=min(termSummary[idNo][2], termSummary[idNo2][2])
 	return termSummary
 
 
 
-def supertermRepresentsSubterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Superterms with more significance represent their subterms with
-	less significance (this also unifies equal terms).
+	less significance.
+	The rule also works for the terms with the same list of genes.
 	'''
-	geneSet1=geneSetsDict[gsID]
-	geneSet2=geneSetsDict[gsID2]
+	geneSet1=geneSetsDict[gsID]#Supposed to be superset and representative
+	geneSet2=geneSetsDict[gsID2]#Supposed to be subset and be represented
 	if(len(geneSet1)<=maxRepresentativeTermSize):
 		if geneSet1.issuperset(geneSet2):
-			for reprTermsOfEaten in termSummary[idNo2][1]:
-				if reprTermsOfEaten not in termSummary[idNo][1]:
-					termSummary[idNo][1].append(reprTermsOfEaten)
+			#Terms represented by the second term are copied under the first term
+			for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+				if reprTermsOfCoveredTerm not in termSummary[idNo][1]:
+					termSummary[idNo][1].append(reprTermsOfCoveredTerm)
 			termSummary[idNo2][0]=-1
 	return termSummary
 
 
 
-def commonParentInListRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
-	Terms with a common parent are represented by the parent
-	if the parent is in the original list
+	Subterms with more significance represent their superterms whose gene list
+	is at least 75% constitued by the subterm
 	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[gsID]==hierarchyDict[gsID2]):
-			if(hierarchyDict[gsID] in originalTermsSet):
-				representingTerm=hierarchyDict[gsID]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
 
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
+	geneSet1=geneSetsDict[gsID]#Supposed to be subset and representative
+	geneSet2=geneSetsDict[gsID2]#Supposed to be superset and be represented
 
-				for reprTermsOfEaten in termSummary[idNo][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo][0]=-1
-
-				for reprTermsOfEaten in termSummary[idNo2][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo2][0]=-1
-
-	return termSummary
-
-
-
-def commonGrandparentInListRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Terms with a common grandparent are represented by the grandparent
-	if the grandparent is in the original list
-	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[hierarchyDict[gsID]]==hierarchyDict[hierarchyDict[gsID2]]):
-			if(hierarchyDict[hierarchyDict[gsID]] in originalTermsSet):
-				representingTerm=hierarchyDict[hierarchyDict[gsID]]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
-
-				for reprTermsOfEaten in termSummary[idNo][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo][0]=-1
-				for reprTermsOfEaten in termSummary[idNo2][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo2][0]=-1
-
-	return termSummary
-
-
-
-def commonParentGrandparentInListRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Terms in which one's parent is other's grandparent are represented
-	by this ancestor term if it is in the original list
-	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[hierarchyDict[gsID]]==hierarchyDict[gsID2]):
-			if(hierarchyDict[gsID2] in originalTermsSet):
-				representingTerm=hierarchyDict[gsID2]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-	try:
-		if(hierarchyDict[gsID]==hierarchyDict[hierarchyDict[gsID2]]):
-			if(hierarchyDict[gsID] in originalTermsSet):
-				representingTerm=hierarchyDict[gsID]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
-
-				for reprTermsOfEaten in termSummary[idNo][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo][0]=-1
-				for reprTermsOfEaten in termSummary[idNo2][1]:
-					if reprTermsOfEaten not in ts[1]:
-						ts[1].append(reprTermsOfEaten)
-				termSummary[idNo2][0]=-1
-
+	#Representative term size is checked as usual.
+	#Represented term size is not checked
+	if(len(geneSet1)<=maxRepresentativeTermSize):
+		if geneSet2.issuperset(geneSet1) and len(geneSet1)/len(geneSet2)>0.75:
+			#Terms represented by the second term are copied under the first term
+			for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+				if reprTermsOfCoveredTerm not in termSummary[idNo][1]:
+					termSummary[idNo][1].append(reprTermsOfCoveredTerm)
+			termSummary[idNo2][0]=-1
 	return termSummary
 
 
 
 def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
-	Subterms represent their superterms with less significance / lower rank
-	and less representative power.
+	Subterms with more significance represent their superterms with less
+	significance and less representative power.
 	Representative power is the number of terms they represent.
 	'''
 	geneSet1=geneSetsDict[gsID]
 	geneSet2=geneSetsDict[gsID2]
 	if(len(geneSet1)<=maxRepresentativeTermSize):
 		if geneSet1.issubset(geneSet2):
+			#Representative power comparison
 			if(len(termSummary[idNo][1])>len(termSummary[idNo2][1])):
-				for reprTermsOfEaten in termSummary[idNo2][1]:
-					if reprTermsOfEaten not in termSummary[idNo][1]:
-						termSummary[idNo][1].append(reprTermsOfEaten)
+				#Terms represented by the second term are copied under the first term
+				for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+					if reprTermsOfCoveredTerm not in termSummary[idNo][1]:
+						termSummary[idNo][1].append(reprTermsOfCoveredTerm)
 				termSummary[idNo2][0]=-1
 	return termSummary
 
 
 
-def subtermRepresentsSlightlyLowerRankedSuperterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
-	Subterms represent their slightly lower ranked superterms. Rank tolerance is set to 1.
-	'''
-	rankDiffTolerance=1
-	geneSet1=geneSetsDict[gsID]
-	geneSet2=geneSetsDict[gsID2]
-	if(len(geneSet1)<=maxRepresentativeTermSize):
-		if geneSet2.issuperset(geneSet1):
-			if (termSummary[idNo2][2]-termSummary[idNo][2])<=rankDiffTolerance:
-				for reprTermsOfEaten in termSummary[idNo2][1]:
-					if reprTermsOfEaten not in termSummary[idNo][1]:
-						termSummary[idNo][1].append(reprTermsOfEaten)
-				termSummary[idNo2][0]=-1
-	return termSummary
-
-
-
-def commonParentRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Terms with a common parent are represented by the parent
-	(even if the parent is not in the original list)
-	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[gsID]==hierarchyDict[gsID2]):
-			representingTerm=hierarchyDict[gsID]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
-			else:
-				termSummary.append([representingTerm, [], min(termSummary[idNo][2], termSummary[idNo2][2])])
-				ts=termSummary[-1]
-
-			for reprTermsOfEaten in termSummary[idNo][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo][0]=-1
-
-			for reprTermsOfEaten in termSummary[idNo2][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo2][0]=-1
-
-	return termSummary
-
-
-
-def commonGrandparentRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Terms with a common grandparent are represented by the grandparent
-	(even if the grandparent is not in the original list)
-	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[hierarchyDict[gsID]]==hierarchyDict[hierarchyDict[gsID2]]):
-			representingTerm=hierarchyDict[hierarchyDict[gsID]]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
-			else:
-				termSummary.append([representingTerm, [], min(termSummary[idNo][2], termSummary[idNo2][2])])
-				ts=termSummary[-1]
-
-			for reprTermsOfEaten in termSummary[idNo][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo][0]=-1
-
-			for reprTermsOfEaten in termSummary[idNo2][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo2][0]=-1
-
-	return termSummary
-
-
-
-def commonParentGrandparentRepresentsTerms(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Terms in which one's parent is other's grandparent are represented
-	by this ancestor term (even if it is not in the original list)
-	'''
-	representingTerm=None
-	try:
-		if(hierarchyDict[hierarchyDict[gsID]]==hierarchyDict[gsID2]):
-			representingTerm=hierarchyDict[gsID2]
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-	try:
-		if(hierarchyDict[gsID]==hierarchyDict[hierarchyDict[gsID2]]):
-			representingTerm=hierarchyDict[gsID]
-			#print('Superterm of one is grand superterm of other')
-	except KeyError:
-		pass#A top term in hierarchy is encountered, no problem
-
-	if representingTerm is not None:
-		if(len(geneSetsDict[representingTerm])<=maxRepresentativeTermSize):
-			tsFound=False
-			for ts in termSummary:
-				if ts[0]==representingTerm:
-					tsFound=True
-					break
-
-			if tsFound:
-				ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
-			else:
-				termSummary.append([representingTerm, [], min(termSummary[idNo][2], termSummary[idNo2][2])])
-				ts=termSummary[-1]
-
-			for reprTermsOfEaten in termSummary[idNo][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo][0]=-1
-
-			for reprTermsOfEaten in termSummary[idNo2][1]:
-				if reprTermsOfEaten not in ts[1]:
-					ts[1].append(reprTermsOfEaten)
-			termSummary[idNo2][0]=-1
-
-	return termSummary
-
-
-
-
-
-
-def Template(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
-	'''
-	Template for new rules
+	Terms that have a common superterm that has more or equal representative
+	power than them are represented by this superterm
 	'''
 	geneSet1=geneSetsDict[gsID]
 	geneSet2=geneSetsDict[gsID2]
 
+	if len(geneSet1)<=maxRepresentativeTermSize and len(geneSet2)<=maxRepresentativeTermSize:
 
+		#All representative terms in termSummary are checked excluding
+		#the considered two terms
+		for ts in termSummary:
+			if ts[0]!=-1 and ts[0]!=gsID and ts[0]!=gsID2:
+				geneSetOther=geneSetsDict[ts[0]]
+				if(len(geneSetOther)<=maxRepresentativeTermSize):
+					if geneSetOther.issuperset(geneSet1) and geneSetOther.issuperset(geneSet2):
+						#Representative power comparison
+						if(len(ts[1])>len(termSummary[idNo][1]) and len(ts[1])>len(termSummary[idNo2][1])):
+
+							#The term to represent the considered two terms might have better or worse rank.
+							#Best (minimum) rank among these three terms will be its new rank.
+							#In the rules that more significant covers less significant this code
+							#is not needed because the term to be representative has already better rank.
+							ts[2]=min(termSummary[idNo][2], termSummary[idNo2][2], ts[2])
+
+
+							#Terms represented by the considered terms are copied under the representative term
+
+							for reprTermsOfCoveredTerm in termSummary[idNo][1]:
+								if reprTermsOfCoveredTerm not in ts[1]:
+									ts[1].append(reprTermsOfCoveredTerm)
+							termSummary[idNo][0]=-1
+
+
+							for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+								if reprTermsOfCoveredTerm not in ts[1]:
+									ts[1].append(reprTermsOfCoveredTerm)
+							termSummary[idNo2][0]=-1
+
+							break
+
+	return termSummary
+
+
+
+
+def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+	'''
+	This rule is to collect large terms into groups, it only works for terms
+	that are larger than maxRepresentativeTermSize.
+	Superterms larger than maxRepresentativeTermSize represent their less
+	significant subterms which are also larger than maxRepresentativeTermSize
+	'''
+	geneSet1=geneSetsDict[gsID]
+	geneSet2=geneSetsDict[gsID2]
+	if len(geneSet1)>maxRepresentativeTermSize and len(geneSet2)>maxRepresentativeTermSize:
+		if geneSet1.issuperset(geneSet2):
+			for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
+				if reprTermsOfCoveredTerm not in termSummary[idNo][1]:
+					termSummary[idNo][1].append(reprTermsOfCoveredTerm)
+			termSummary[idNo2][0]=-1
 	return termSummary
 
 
@@ -379,7 +218,7 @@ def Template(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepr
 def readGmtFile(gmtPath):
 	'''
 	Reads GMT file.
-	Each line consists of gene set ID, gene set name and genes,
+	In GMT file each line consists of gene set ID, gene set name and genes,
 	all tab separated, no header.
 	'''
 	geneSetsDict=dict()#gsID to set of genes mapping
@@ -405,7 +244,7 @@ def createTermHierarchy(geneSetsDict, termHierarchyFile=None):
 	Creates hierarchy between terms based on subset/superset relation.
 	Hiearchy can be saved to a file.
 	'''
-	hierarchyDict=dict() #subset to superset
+	hierarchyDict=dict() #subset (key) to superset (value)
 	for gsID, genes1 in geneSetsDict.items():
 		geneSet1=geneSetsDict[gsID]
 		for gsID2, genes2 in geneSetsDict.items():
@@ -452,8 +291,9 @@ def readHierarchyFile(termHierarchyFile):
 	'''
 	Reads hierarchy file.
 	Each line consists of two term IDs separated by tab.
+	(subset\tsuperset)
 	'''
-	hierarchyDict=dict() #subset to superset
+	hierarchyDict=dict() #subset (key) to superset (value)
 	try:
 		f=open(termHierarchyFile, 'r')
 		lines=f.readlines()
@@ -608,3 +448,57 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 	except IOError:
 		print("I/O error while writing term summary file.")
+
+
+
+
+def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, termSummaryFile):
+	'''
+	Writes the results to an HTML file
+	'''
+	try:
+		#Detailed
+		f=open(termSummaryFile, 'w')
+		f.write('<!DOCTYPE html>\n')
+		f.write('<html>\n')
+		f.write('<head>\n')
+		f.write('<title>orsum result</title>\n')
+		f.write('</head>\n')
+		f.write('<body>\n')
+
+		for ts in termSummary:
+			#f.write(getTextForTSElement(ts, gsIDToGsNameDict))
+			f.write(getTextForTSElementMultiEnrichment(ts, gsIDToGsNameDict, tbsGsIDsList, tbsFiles))
+
+		f.write('</body>\n')
+		f.write('</html>\n')
+
+		f.close()
+
+
+
+	except IOError:
+		print("I/O error while writing term summary file.")
+
+
+
+
+def getTextForTSElementMultiEnrichment(ts, gsIDToGsNameDict, tbsGsIDsList, tbsFiles):
+	txt='\n'
+	txt=txt+'<details>'+'\n'
+	#txt=txt+'<summary>'+ts[0]+' '+gsIDToGsNameDict[ts[0]]+' '+str(ts[2])+'</summary>'+'\n'
+	txt=txt+'<summary>'+ts[0]+' '+gsIDToGsNameDict[ts[0]]+'</summary>'+'\n'
+
+	for tbsGsIDsNo in range(len(tbsGsIDsList)):
+		txt=txt+'\t'+'<p style="margin-left:40px">'+'\n'
+		if(len(tbsFiles)>1):
+			txt=txt+'\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+'<br>'+'\n'
+		for reprT in ts[1]:
+			if reprT in tbsGsIDsList[tbsGsIDsNo]:
+				txt=txt+'\t'+reprT+' '+gsIDToGsNameDict[reprT]+' '+str(tbsGsIDsList[tbsGsIDsNo].index(reprT)+1)+'<br>'+'\n'
+		txt=txt+'\t'+'<br>'+'\n'
+		txt=txt+'\t'+'</p>'+'\n'
+	txt=txt+'</details>'+'\n'
+	return txt
+
+
