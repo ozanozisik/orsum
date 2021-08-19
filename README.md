@@ -60,7 +60,7 @@ orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --f
 The rules are given below:
 <ol>
 	<li> Super &lt;- Sub (w worse rank) || Superterms represent their less significant subterms. This includes terms with exactly the same genes.
-	<li> Sub &lt;- Super (w worse rank, subterm is 75% of superterm) || Subterms with more significance represent their superterms whose geneset is at least 75% constitued by the subterm
+	<li> Sub &lt;- Super (w worse rank, subterm is 75% of superterm) || Subterms with more significance represent their superterms whose gene list is at least 75% composed by the subterm
 	<li> Sub &lt;- Super (w worse rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.
 	<li> Common Super &lt;- (Sub Sub) (w less or equal representative power) || A superterm represents its two subterms that have less representative power
 	<li> Large Super &lt;- Large Sub || Superterms larger than maxRepSize represent their less significant subterms which are also larger than maxRepSize.
