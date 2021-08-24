@@ -109,8 +109,8 @@ def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, 
 	geneSet2=geneSetsDict[gsID2]#Supposed to be superset and be represented
 
 	#Representative term size is checked as usual.
-	#Represented term size is not checked
-	if(len(geneSet1)<=maxRepresentativeTermSize):
+	#Represented term size is also checked as it is larger.
+	if(len(geneSet1)<=maxRepresentativeTermSize and len(geneSet2)<=maxRepresentativeTermSize):
 		if geneSet2.issuperset(geneSet1) and len(geneSet1)/len(geneSet2)>0.75:
 			#Terms represented by the second term are copied under the first term
 			for reprTermsOfCoveredTerm in termSummary[idNo2][1]:
@@ -127,9 +127,12 @@ def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(ter
 	significance and less representative power.
 	Representative power is the number of terms they represent.
 	'''
-	geneSet1=geneSetsDict[gsID]
-	geneSet2=geneSetsDict[gsID2]
-	if(len(geneSet1)<=maxRepresentativeTermSize):
+	geneSet1=geneSetsDict[gsID]#Supposed to be subset and representative
+	geneSet2=geneSetsDict[gsID2]#Supposed to be superset and be represented
+
+	#Representative term size is checked as usual.
+	#Represented term size is also checked as it is larger.
+	if(len(geneSet1)<=maxRepresentativeTermSize and len(geneSet2)<=maxRepresentativeTermSize):
 		if geneSet1.issubset(geneSet2):
 			#Representative power comparison
 			if(len(termSummary[idNo][1])>len(termSummary[idNo2][1])):
@@ -468,7 +471,7 @@ def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		for ts in termSummary:
 			#f.write(getTextForTSElement(ts, gsIDToGsNameDict))
-			f.write(getTextForTSElementMultiEnrichment(ts, gsIDToGsNameDict, tbsGsIDsList, tbsFiles))
+			f.write(getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles))
 
 		f.write('</body>\n')
 		f.write('</html>\n')
@@ -483,7 +486,7 @@ def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 
 
-def getTextForTSElementMultiEnrichment(ts, gsIDToGsNameDict, tbsGsIDsList, tbsFiles):
+def getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles):
 	txt='\n'
 	txt=txt+'<details>'+'\n'
 	#txt=txt+'<summary>'+ts[0]+' '+gsIDToGsNameDict[ts[0]]+' '+str(ts[2])+'</summary>'+'\n'
@@ -495,7 +498,7 @@ def getTextForTSElementMultiEnrichment(ts, gsIDToGsNameDict, tbsGsIDsList, tbsFi
 			txt=txt+'\t'+os.path.basename(tbsFiles[tbsGsIDsNo])+'<br>'+'\n'
 		for reprT in ts[1]:
 			if reprT in tbsGsIDsList[tbsGsIDsNo]:
-				txt=txt+'\t'+reprT+' '+gsIDToGsNameDict[reprT]+' '+str(tbsGsIDsList[tbsGsIDsNo].index(reprT)+1)+'<br>'+'\n'
+				txt=txt+'\t'+reprT+' '+gsIDToGsNameDict[reprT]+' (rank: '+str(tbsGsIDsList[tbsGsIDsNo].index(reprT)+1)+', term size: '+ str(len(geneSetsDict[reprT])) +')<br>'+'\n'
 		txt=txt+'\t'+'<br>'+'\n'
 		txt=txt+'\t'+'</p>'+'\n'
 	txt=txt+'</details>'+'\n'
