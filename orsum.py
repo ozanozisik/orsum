@@ -37,7 +37,7 @@ required.add_argument('--files', required=True, nargs='+', help='Paths for the e
 # optional arguments
 optional.add_argument('--outputFolder', default=".", help='Path for the output result files. If it is not specified, results are written to the current directory.')
 optional.add_argument('--createHF', action='store_true', help='Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
-optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 9 are run.')
+optional.add_argument('--rules', type=int, nargs='*', help='List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 5 are run.')
 optional.add_argument('--maxRepSize', type=int, default=2000, help='The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 2000')
 optional.add_argument('--outputAll', action='store_true', help='When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
 args = parser.parse_args()
@@ -105,18 +105,14 @@ termSummary=initializeTermSummary(tbsGsIDsList)
 
 #Rules are listed here as tuples (function name, explanation, rule no).
 allRules=[
-	(supertermRepresentsSubterm, 'Super <- Sub (w less Rank) || Superterms represent their less significant / lower ranked subterms', 1),
-	(commonParentInListRepresentsTerms, 'Parent in list || Terms with a common parent are represented by the parent if the parent is in the original list', 2),
-	(commonGrandparentInListRepresentsTerms, 'Grandparent in list || Terms with a common grandparent are represented by the grandparent if the grandparent is in the original list', 3),
-	(commonParentGrandparentInListRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term if it is in the original list', 4),
-	(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w less rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.', 5),
-	(subtermRepresentsSlightlyLowerRankedSuperterm, 'Sub <- Super (less Rank) || Subterms represent their slightly lower ranked superterms. Rank tolerance is set to 1.', 6),
-	(commonParentRepresentsTerms, 'Parent || Terms with a common parent are represented by the parent (even if the parent is not in the original list)', 7),
-	(commonGrandparentRepresentsTerms, 'Grandparent || Terms with a common grandparent are represented by the grandparent (even if the grandparent is not in the original list)', 8),
-	(commonParentGrandparentRepresentsTerms, 'Parent/Grandparent || Terms in which one\'s parent is other\'s grandparent are represented by this ancestor term (even if it is not in the original list)', 9)
+	(supertermRepresentsLessSignificantSubterm, 'Super <- Sub (w worse rank) || Superterms represent their less significant subterms. This includes terms with exactly the same genes.', 1),
+	(subtermRepresentsLessSignificantSimilarSuperterm, 'Sub <- Super (w worse rank, subterm is 75% of superterm) || Subterms with more significance represent their superterms whose gene list is at least 75% composed of the subterm', 2),
+	(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w worse rank less representative power) || Subterms represent their superterms with less significance / lower rank and less representative power. Representative power is the number of terms they represent.', 3),
+	(commonSupertermInListRepresentsSubtermsWithLessRepresentativePower, 'Common Super <- (Sub Sub) (w less or equal representative power) || A superterm represents its two subterms that have less representative power', 4),
+	(supertermRepresentsSubtermLargerThanMaxRep, 'Large Super <- Large Sub || Superterms larger than maxRepSize represent their less significant subterms which are also larger than maxRepSize', 5)
 ]
 
-#This rule is run by default if there are multiple lists of results
+#This rule is run by default if there are multiple enrichment results
 multipleListsUnifyRule=(recurringTermsUnified,'Same terms in multiple lists are unified')
 
 #rulesToApply contains the rules to be applied, based on arguments (by default
@@ -127,10 +123,10 @@ else:
 	try:
 		rulesToApply=[allRules[int(r)-1] for r in rulesToUseNo]
 	except IndexError:
-		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
 		exit()
 	except ValueError:
-		print('For the rules parameter, numbers between 1-9 (inclusive) must be given')
+		print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
 		exit()
 
 
@@ -157,6 +153,7 @@ else:
 	termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, multipleListsUnifyRule[0])
 	print('Representing term number:',len(termSummary),'\n')
 
+
 processStep=1
 for i in range(len(rulesToApply)):
 	#Apply rule
@@ -169,10 +166,15 @@ for i in range(len(rulesToApply)):
 
 	print('Representing term number:',len(termSummary),'\n')
 
+	fileName=outputFolder+'termSummary'+'{:02d}'.format(i+1)+'-Rule'+'{:02d}'.format(rulesToApply[i][2])
+
 	if(outputAll or i==len(rulesToApply)-1):
-		writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Detailed.tsv', outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv')
+		#writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Detailed.tsv', outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv')
+		writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
+		writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileName+'.html')
 
 	if(i==len(rulesToApply)-1):
-		orsum_plot(outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv', outputFolder, 50)
+		#orsum_plot(outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv', outputFolder, 50)
+		orsum_plot(fileName+'-Summary.tsv', outputFolder, 50)
 
 	processStep=processStep+1

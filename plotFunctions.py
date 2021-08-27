@@ -181,7 +181,7 @@ def orsum_heatmap(allRanks_array, df, nbTerm, plotName, conditionName,
     # Create theme and plot
     sns.set(font_scale=0.5)
     plt.figure(figsize=(10, 6))
-    plt.title('Heatmap', fontsize=10)
+    plt.title('Term rank heatmap', fontsize=10)
     ax = sns.heatmap(array, cmap=palette_cmap,
                      square=True, linewidths=0.5,
                      yticklabels=df_filt['labels'],
