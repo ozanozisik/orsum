@@ -84,7 +84,7 @@ def orsum_readResultFile(inputFile):
 	return(df, allRanks_array, resultsId, palette_cmap)
 
 
-def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, palette_cmap, ticks):
+def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 	"""
 	Create ans save barplot of the main results from orsum.py.
 	
@@ -93,7 +93,6 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, palette_cmap, ticks):
 	:param int sizeMax: Size max of representing term.
 	:param int sizeMin: Size min of representing term.
 	:param str plotName: Path and name of the plot created by this function.
-	:param matplotlib.ListedColormap palette_cmap: Color map.
 	:param list ticks: List of integer. Correspond of the values for the colorbar ticks.
 	"""
 	# Select the nbTerm top of results
@@ -102,17 +101,12 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, palette_cmap, ticks):
 	sns.set_theme(style = 'whitegrid')
 	sns.set_context('paper', font_scale = 1.1)
 	plt.figure(figsize = (10, 10))
-	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', palette = df_filt['colors'])
+	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', color = df_filt['colors'][1])
 	# Labels
 	plt.title('Main results of orsum analysis', fontsize = 20)
 	plt.xlabel('Number of terms', fontsize = 15)
 	plt.ylabel('Representing terms', fontsize = 15)
 	plt.xlim(0, max(df_filt['sizes']))
-	# Colorbar
-	norm = plt.Normalize(vmax = sizeMax, vmin = sizeMin)
-	sm = plt.cm.ScalarMappable(cmap = palette_cmap, norm = norm)
-	cb = ax.figure.colorbar(sm, label = 'Rank', shrink = 0.5, ticks = tck.FixedLocator(ticks))
-	cb.ax.invert_yaxis()
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
 
@@ -182,7 +176,7 @@ def orsum_plot(inputFile, outputDir, threshold):
 	"""
 	Main function.
 
-	Initialisation fo parameters.
+	Initialisation of the parameters.
 	Read and parse results file from orsum.py.
 	Calcul bounderies for colorbar.
 	Create and save severals plot.
@@ -204,6 +198,6 @@ def orsum_plot(inputFile, outputDir, threshold):
 	boundariesCB = createBoundaries4Colorbar(df, step = 100)
 	# PLOTS
 	orsum_linePlot(df = df, plotName = lineplotName)
-	orsum_barplot(df = df, nbTerm = threshold, sizeMax = df['ranks'].max(), sizeMin = df['ranks'].min(), plotName = barplotName, palette_cmap = palette_cmap, ticks = boundariesCB)
+	orsum_barplot(df = df, nbTerm = threshold, sizeMax = df['ranks'].max(), sizeMin = df['ranks'].min(), plotName = barplotName, ticks = boundariesCB)
 	orsum_heatmap(allRanks_array = allRanks_array, df = df, nbTerm = threshold, plotName = heatmapName, conditionName = resultsId, palette_cmap = palette_cmap, ticks = boundariesCB)
 
