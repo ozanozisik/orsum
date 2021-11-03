@@ -103,9 +103,9 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 	plt.figure(figsize = (10, 10))
 	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', color = df_filt['colors'][1])
 	# Labels
-	plt.title('Main results of orsum analysis', fontsize = 20)
-	plt.xlabel('Number of terms', fontsize = 15)
-	plt.ylabel('Representing terms', fontsize = 15)
+	plt.title('Top results of representative terms', fontsize = 20)
+	plt.xlabel('Number of represented terms', fontsize = 15)
+	plt.ylabel('')
 	plt.xlim(0, max(df_filt['sizes']))
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
@@ -128,9 +128,10 @@ def orsum_heatmap(allRanks_array, df, nbTerm, plotName, conditionName, palette_c
 	# Create theme and plot
 	sns.set(font_scale = 0.5)
 	plt.figure(figsize = (10, 6))
-	plt.title('Term rank heatmap', fontsize = 10)
+	plt.title('Representative term ranks', fontsize = 10)
 	ax = sns.heatmap(array, cmap = palette_cmap, square = True, linewidths = 0.5, yticklabels = df_filt['labels'], cbar_kws = {'shrink': 0.5, 'ticks': ticks}, xticklabels = conditionName, vmin = df['ranks'].min(), vmax = df['ranks'].max())
 	# Colorbar
+	ax.collections[0].colorbar.set_label("Ranks")
 	ax.collections[0].colorbar.ax.set_ylim(df['ranks'].max(), 0)
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
@@ -148,9 +149,9 @@ def orsum_linePlot(df, plotName):
 	plt.figure(figsize = (10, 10))
 	plt.scatter(df['ranks'], df['sizes'], c = 'purple')
 	# Labels
-	plt.title('Size of each representing term', fontsize = 20)
+	plt.title('Size of each representative term', fontsize = 20)
 	plt.xlabel('Rank')
-	plt.ylabel('Number of term inside the representing term', fontsize = 15)
+	plt.ylabel('Number of term inside the representative term', fontsize = 15)
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
 
