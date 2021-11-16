@@ -5,10 +5,12 @@
 """
 Created on Wed Mar 24 13:55:58 2021
 
-@author: Ozan
+@author: Ozan, Morgane T.
 
-Gene Set Summary
-This code gets the list of ranked gene set/pathway codes resulting from an enrichment analysis and summarizes them at different levels applying more relaxed rules at each step.
+orsum enrichment analysis results filtering tool
+This code gets the list of ranked gene set/pathway codes resulting from an
+enrichment analysis and summarizes them at different levels applying more
+relaxed rules at each step.
 """
 
 from termCombinationLib import *
@@ -28,11 +30,9 @@ def argumentParserFunction():
 	optional.add_argument('-h', '--help', action = 'help', default = SUPPRESS, help = 'show this help message and exit')
 	# required arguments
 	required.add_argument('--gmt', required = True, help = 'Path for the GMT file.')
-	required.add_argument('--hierarchyFile', required = True, help = 'Path for the hierarchy file. It is created if the file does not exist.')
 	required.add_argument('--files', required = True, nargs = '+', help = 'Paths for the enrichment result files.')
 	# optional arguments
 	optional.add_argument('--outputFolder', default = ".", help = 'Path for the output result files. If it is not specified, results are written to the current directory.')
-	optional.add_argument('--createHF', action = 'store_true', help = 'Creates the hierarchy file when this is used, otherwise tries to read, if absent creates it.')
 	optional.add_argument('--rules', type = int, nargs = '*', help = 'List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 5 are run.')
 	optional.add_argument('--maxRepSize', type = int, default = 2000, help = 'The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 2000')
 	optional.add_argument('--outputAll', action = 'store_true', help = 'When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
@@ -40,14 +40,12 @@ def argumentParserFunction():
 
 if __name__ == "__main__":
 	# Command-line interface
-	parser = argumentParserFunction()	
+	parser = argumentParserFunction()
 	args = parser.parse_args()
 	argsDict = vars(args)
 
 	# Parameters
 	gmtPath=argsDict['gmt']
-	termHierarchyFile=argsDict['hierarchyFile']
-	createHF=argsDict['createHF']
 	tbsFiles=argsDict['files']
 	outputAll=argsDict['outputAll']
 	maxRepresentativeTermSize=int(argsDict['maxRepSize'])
@@ -55,8 +53,7 @@ if __name__ == "__main__":
 	outputFolder=argsDict['outputFolder']
 
 
-	#Read the GMT file and create term hiearchy for terms which have subset
-	#superset relationship. No prior information is used for hierarchy.
+	#Read the GMT file.
 	#The GMT file contains one gene set/pathway at each line, with no header.
 	#A line starts with gene set code, then gene set name, then gene IDs, each
 	#separated by tab. As long as the gene IDs are consistent throughout the GMT
@@ -65,28 +62,6 @@ if __name__ == "__main__":
 
 	geneSetsDict, gsIDToGsNameDict=readGmtFile(gmtPath)
 
-	#Based on the option provided by the user, create or read hierarchy file.
-	if(createHF):#createHF is boolean
-		#Create term hiearchy, save it to a file, and use it in the rest of the run
-		hierarchyDict=createTermHierarchy(geneSetsDict, termHierarchyFile)
-	else:
-		if os.path.exists(termHierarchyFile):
-			#Read hierarchy from an existing hierarchy file
-			hierarchyDict=readHierarchyFile(termHierarchyFile)
-		else:
-			print('Could not find hierarchy file, creating...')
-			hierarchyDict=createTermHierarchy(geneSetsDict, termHierarchyFile)
-
-
-	#Read enrichment results to be summarized. These files must only contain
-	#ranked gene set IDs which are consistent with the GMT file.
-	if len(set(hierarchyDict.keys()).intersection(set(geneSetsDict.keys())))==0:
-		if createHF:
-			print('The IDs in the hierarchy file do not match the IDs in the GMT file. As --createHF parameter is used something must have gone wrong during hiearchy file creation.' )
-			exit()
-		else:
-			print('The IDs in the hierarchy file do not match the IDs in the GMT file. Please check your command, the GMT file and the hierarchy file, and be sure that they are consistent.')
-			exit()
 
 
 	tbsGsIDsList=[]
@@ -150,7 +125,7 @@ if __name__ == "__main__":
 
 		#Apply multipleListsUnifyRule to unify the same terms from multiple lists
 		print(multipleListsUnifyRule[1])
-		termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, multipleListsUnifyRule[0])
+		termSummary=applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, multipleListsUnifyRule[0])
 		print('Representing term number:',len(termSummary),'\n')
 
 
@@ -158,11 +133,11 @@ if __name__ == "__main__":
 	for i in range(len(rulesToApply)):
 		#Apply rule
 		print(rulesToApply[i][1])
-		termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[i][0])
+		termSummary=applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[i][0])
 
 		#Apply previously applied rules again
 		for j in range(0,i):
-			termSummary=applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[j][0])
+			termSummary=applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, rulesToApply[j][0])
 
 		print('Representing term number:',len(termSummary),'\n')
 
