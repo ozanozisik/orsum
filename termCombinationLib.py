@@ -14,7 +14,7 @@ import os
 
 
 
-def applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, process):
+def applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, process):
 	'''
 	This function is called to apply a rule on term pairs.
 	The function of the rule to be applied is given as parameter (process).
@@ -28,7 +28,7 @@ def applyRule(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRep
 			for idNo2 in range(idNo+1, len(termSummary)):
 				gsID2=termSummary[idNo2][0]
 				if  gsID2!=-1:#Check if the term is still a representative term
-					termSummary=process(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2)
+					termSummary=process(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2)
 
 	#Remove terms that are represented by other terms
 	termSummary=[e for e in termSummary if e[0]!=-1]
@@ -63,7 +63,7 @@ not lost because it is already copied under term A (termSummary[idNoA][1]).
 
 
 
-def recurringTermsUnified(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def recurringTermsUnified(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Recurring terms coming from multiple lists are unified.
 	This rule is run by default if there are multiple enrichment results.
@@ -80,7 +80,7 @@ def recurringTermsUnified(termSummary, geneSetsDict, hierarchyDict, originalTerm
 
 
 
-def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Superterms with more significance represent their subterms with
 	less significance.
@@ -99,7 +99,7 @@ def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, hierarc
 
 
 
-def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Subterms with more significance represent their superterms whose gene list
 	is at least 75% composed of the subterm
@@ -121,7 +121,7 @@ def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, 
 
 
 
-def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Subterms with more significance represent their superterms with less
 	significance and less representative power.
@@ -145,7 +145,7 @@ def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(ter
 
 
 
-def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Terms that have a common superterm that has more or equal representative
 	power than them are represented by this superterm
@@ -192,7 +192,7 @@ def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSumma
 
 
 
-def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, hierarchyDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	This rule is to collect large terms into groups, it only works for terms
 	that are larger than maxRepresentativeTermSize.
@@ -241,72 +241,6 @@ def readGmtFile(gmtPath):
 		print("I/O error while reading gmt file.")
 	return geneSetsDict, gsIDToGsNameDict
 
-
-def createTermHierarchy(geneSetsDict, termHierarchyFile=None):
-	'''
-	Creates hierarchy between terms based on subset/superset relation.
-	Hiearchy can be saved to a file.
-	'''
-	hierarchyDict=dict() #subset (key) to superset (value)
-	for gsID, genes1 in geneSetsDict.items():
-		geneSet1=geneSetsDict[gsID]
-		for gsID2, genes2 in geneSetsDict.items():
-			if gsID!=gsID2:
-				geneSet2=geneSetsDict[gsID2]
-
-				#When there is a superset subset relation we check whether
-				#a parent was previously assigned in the hierarchy.
-				#If yes, we check the size of the existing superset (say
-				#superE) and new superset (superN). If superN is smaller,
-				#it is assigned as the parent. The removed superset superE
-				#is not lost because during its processing step, it is already
-				#assigned as parent to its subterms, possibly including
-				#superN
-				if(geneSet1!=geneSet2):
-					if geneSet1.issuperset(geneSet2):
-						curSuperset=hierarchyDict.get(gsID2)
-						if curSuperset is None:
-							hierarchyDict[gsID2]=gsID
-						else:
-							if len(geneSetsDict[gsID])<len(geneSetsDict[curSuperset]):
-								hierarchyDict[gsID2]=gsID
-					if geneSet2.issuperset(geneSet1):
-						curSuperset=hierarchyDict.get(gsID)
-						if curSuperset is None:
-							hierarchyDict[gsID]=gsID2
-						else:
-							if len(geneSetsDict[gsID2])<len(geneSetsDict[curSuperset]):
-								hierarchyDict[gsID]=gsID2
-
-	if termHierarchyFile is not None:
-		try:
-			f=open(termHierarchyFile, 'w')
-			for k,v in hierarchyDict.items():
-				f.write(k+'\t'+v+'\n')
-			f.close()
-		except IOError:
-			print("I/O error while writing hierarchy file.")
-
-	return hierarchyDict
-
-
-def readHierarchyFile(termHierarchyFile):
-	'''
-	Reads hierarchy file.
-	Each line consists of two term IDs separated by tab.
-	(subset\tsuperset)
-	'''
-	hierarchyDict=dict() #subset (key) to superset (value)
-	try:
-		f=open(termHierarchyFile, 'r')
-		lines=f.readlines()
-		for line in lines:
-			tokens=line.strip().split('\t')
-			hierarchyDict[tokens[0]]=tokens[1]
-		f.close()
-	except IOError:
-		print("I/O error while reading hierarchy file.")
-	return hierarchyDict
 
 
 ##############################################################################
