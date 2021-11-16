@@ -30,16 +30,14 @@ conda install -c bioconda orsum
 </code><br>
 <br>
 <br>
-usage: orsum.py [-h] --gmt GMT --hierarchyFile HIERARCHYFILE [--createHF]
-                --files FILES [FILES ...] --outputFolder OUTPUTFOLDER
-                [--rules [RULES [RULES ...]]] [--maxRepSize MAXREPSIZE]
+usage: orsum.py [-h] --gmt GMT --files FILES [FILES ...]
+                [--outputFolder OUTPUTFOLDER] [--rules [RULES [RULES ...]]]
+                [--maxRepSize MAXREPSIZE] [--outputAll]
 <br>
 <ul>
 <li>--gmt: Path for the GMT file. (required)
-<li>--hierarchyFile: Path for the hierarchy file. It is created if the file does not exist. (required)
 <li>--files: Paths for the enrichment result files. (required)
 <li>--outputFolder: Path for the output result files. If it is not specified, results are written to the current directory. (optional, default=".")
-<li>--createHF: Forces the creation of new hierarchy file, otherwise orsum tries to read, if absent creates it. (optional)
 <li>--rules: List of ordered numbers of the rules to apply while summarizing. By default, all the rules are run from 1 to 5. (optional)
 <li>--maxRepSize: The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. (optional, default=2000)
 <li>--outputAll: When this option is used, a summary file is created after applying each rule, otherwise only final summary is created. (optional)
@@ -48,13 +46,13 @@ usage: orsum.py [-h] --gmt GMT --hierarchyFile HIERARCHYFILE [--createHF]
 
 Example command:<br>
 <code>
-orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --hierarchy 'hierarchyDict-GOBP.tsv' --files 'Enrichment-GOBP.csv' --outputFolder 'OutputGOBP'
+orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --files 'Enrichment-GOBP.csv' --outputFolder 'OutputGOBP'
 </code><br>
 
 
 Example command:<br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --hierarchy 'hierarchyDict-Reac.tsv' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 5 --outputFolder 'OutputReac' --maxRepSize 1000
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.csv' 'Enrichment-Method2-Reac.csv' 'Enrichment-Method3-Reac.csv' --rules 1 2 5 --outputFolder 'OutputReac' --maxRepSize 1000
 </code><br>
 
 The rules are given below:
