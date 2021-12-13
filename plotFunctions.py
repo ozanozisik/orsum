@@ -11,12 +11,13 @@ Create plots for orsum results
 """
 
 # LIBRARIES
-import matplotlib.pyplot as plt
+import os
 import numpy as np
 import seaborn as sns
 import pandas as ps
-import os
+import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
+import matplotlib.colors as colors
 
 # FUNCTIONS
 
@@ -113,6 +114,7 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 def orsum_heatmap(allRanks_array, df, nbTerm, plotName, conditionName, palette_cmap, ticks):
 	"""
 	Create and save heatmap of the results of each analysis from orsum.py.
+	Field with ranks from each analysis. 
 
 	:param numpy.ndarray allRanks_array: Array with the rank for each analysis contains in the results file. Created by orsum_readResultFile() function.
 	:param pandas.DataFrame df: Data frame with 4 columns (sizes, labels, ranks, colors). Created by orsum_readResultFile() function.
@@ -135,6 +137,75 @@ def orsum_heatmap(allRanks_array, df, nbTerm, plotName, conditionName, palette_c
 	ax.collections[0].colorbar.ax.set_ylim(df['ranks'].max(), 0)
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
+
+def calculateQuartileFromRanks(allRanks_array):
+	"""
+	Calculate the quartiles values for each condition
+	Create a new array with the number of quartile associated for each rank
+
+	:param numpy.ndarray allRanks_array: Array with the rank for each analysis contains in the results file
+	:return: **allQ** (*numpy.ndarray*) – Array with the quartile for each analysis
+	"""
+	# Calcul quartiles for each condition
+	allRanks_df = ps.DataFrame(allRanks_array)
+	Q_array = allRanks_df.quantile(q=[0.25, 0.50, 0.75])
+	# Create new array with quartiles
+	allQ = []
+	for line in allRanks_array:
+		quantiles = []
+		for ind in range(len(line)):
+			rank = line[ind]
+			if (np.isnan(rank)):
+				quantiles.append(np.nan)
+			else:
+				if rank <= Q_array[ind][0.25]:
+					quantiles.append(1)
+				if Q_array[ind][0.25] < rank <= Q_array[ind][0.50]:
+					quantiles.append(2)
+				if Q_array[ind][0.50] < rank <= Q_array[ind][0.75]:
+					quantiles.append(3)
+				if rank > Q_array[ind][0.75]:
+					quantiles.append(4)
+		quantiles_array = np.array(quantiles)
+		allQ.append(quantiles_array)
+	return(allQ)
+
+
+def orsum_heatmap_quartile_quantitative(quartiles_array, df, nbTerm, plotName, conditionName):
+	"""
+	Create and save heatmap of the results of each analysis from orsum.py.
+	Display quartile calculated from each condition
+	Discrete color map
+
+	:param numpy.ndarray quartiles_array: Array with the quartile for each analysis contains in the results file. Created by orsum_readResultFile() function.
+	:param pandas.DataFrame df: Data frame with 4 columns (sizes, labels, ranks, colors). Created by orsum_readResultFile() function.
+	:param int nbTerm: Number of top results you want to display (MAX = 50).
+	:param str plotName: Path and name of the plot created by this function.
+	:param list conditionName: List of analysis names.
+	"""
+	# Color for heatmap
+	nbMax = 4
+	quartilePalette_cmap = sns.cubehelix_palette(light=.8, n_colors=nbMax, as_cmap=True, reverse=True)
+	bounds = [1, 2, 3, 4, 5]
+	norm = colors.BoundaryNorm(bounds, quartilePalette_cmap.N)
+
+	# Select the nbTerm top of results
+	array = quartiles_array[0:nbTerm]
+	df_filt = df[0:nbTerm]
+	# Create theme and plot
+	sns.set(font_scale = 0.5)
+	plt.figure(figsize = (10, 6))
+	plt.title('Representative term ranks', fontsize = 10)
+	ax = sns.heatmap(array, cmap = quartilePalette_cmap, norm = norm, square=True, linewidths=0.5, yticklabels=df_filt['labels'], xticklabels = conditionName)
+	# Colorbar
+	ax.collections[0].colorbar.ax.set_ylim(5, 1)
+	colorbar = ax.collections[0].colorbar
+	colorbar.set_ticks([1.5, 2.5, 3.5, 4.5])
+	colorbar.set_ticklabels(["Q1", "Q2", "Q3", "Q4"])
+	ax.collections[0].colorbar.set_label("Quartiles")
+	# Save and close plot
+	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
+	plt.close()
 
 def orsum_linePlot(df, plotName):
 	"""
@@ -188,7 +259,8 @@ def orsum_plot(inputFile, outputDir, threshold):
 	"""
 	# PARAMETERS
 	barplotName = '{}{}{}'.format(outputDir, os.sep, 'Barplot')
-	heatmapName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
+	#heatmapName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
+	heatmapQuartQuantitativeName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap_quartiles_quantitativeColor')
 	lineplotName = '{}{}{}'.format(outputDir, os.sep, 'SizesDistribution')
 	# CHECK
 	if(threshold > 50):
@@ -197,8 +269,11 @@ def orsum_plot(inputFile, outputDir, threshold):
 	# READ FILE AND CALCUL BOUNDARIES
 	df, allRanks_array, resultsId, palette_cmap = orsum_readResultFile(inputFile = inputFile)
 	boundariesCB = createBoundaries4Colorbar(df, step = 100)
+	# CALCULATE QUARTILES
+	allQuartiles_array = calculateQuartileFromRanks(allRanks_array = allRanks_array)
 	# PLOTS
 	orsum_linePlot(df = df, plotName = lineplotName)
 	orsum_barplot(df = df, nbTerm = threshold, sizeMax = df['ranks'].max(), sizeMin = df['ranks'].min(), plotName = barplotName, ticks = boundariesCB)
-	orsum_heatmap(allRanks_array = allRanks_array, df = df, nbTerm = threshold, plotName = heatmapName, conditionName = resultsId, palette_cmap = palette_cmap, ticks = boundariesCB)
+	#orsum_heatmap(allRanks_array = allRanks_array, df = df, nbTerm = threshold, plotName = heatmapName, conditionName = resultsId, palette_cmap = palette_cmap, ticks = boundariesCB)
+	orsum_heatmap_quartile_quantitative(quartiles_array = allQuartiles_array, df = df, nbTerm = threshold, plotName = heatmapQuartQuantitativeName, conditionName = resultsId)
 
