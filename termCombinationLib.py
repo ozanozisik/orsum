@@ -14,11 +14,15 @@ import os
 
 
 
-def applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, process):
-	'''
-	This function is called to apply a rule on term pairs.
-	The function of the rule to be applied is given as parameter (process).
-	'''
+def applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, process):
+	"""
+	This function applies the specified rule ("process") on each pair of terms.
+
+	:param list termSummary: Term list to be summarized with the application of each rule.
+	:param dict geneSetsDict: Dictionary mapping gene set (term) IDs to set of genes.
+	:param int maxRepresentativeTermSize: The maximum size of a representative term. Terms bigger than this size will not be discarded but also will not be able to represent terms smaller than this size.
+	:param function process: The rule to be applied.
+	"""
 
 	#Starting with the top terms, term pairs are picked from the termSummary
 	#and the rule is applied to them.
@@ -28,7 +32,7 @@ def applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTerm
 			for idNo2 in range(idNo+1, len(termSummary)):
 				gsID2=termSummary[idNo2][0]
 				if  gsID2!=-1:#Check if the term is still a representative term
-					termSummary=process(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2)
+					termSummary=process(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2)
 
 	#Remove terms that are represented by other terms
 	termSummary=[e for e in termSummary if e[0]!=-1]
@@ -46,16 +50,13 @@ def applyRule(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTerm
 General description on how rules work:
 
 Rules take information on two terms from the termSummary.
-These two terms are evaluated for their fitness to the rule.
+These two terms are evaluated whether they satisfy the conditions of the rule.
 If term A will represent term B, the terms represented by term B
 (this includes itself) are appended to the list of terms represented by
 term A. Term B's gsID which is stored in termSummary[idNoB][0] is set to -1
 to mark that it is not a representative term any more. gsID information is
 not lost because it is already copied under term A (termSummary[idNoA][1]).
-
-
 '''
-
 
 #In combination methods sending gsIDs as parameters is important
 #because when a method assigns -1 in place of gsID, this affects following
@@ -63,7 +64,7 @@ not lost because it is already copied under term A (termSummary[idNoA][1]).
 
 
 
-def recurringTermsUnified(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def recurringTermsUnified(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Recurring terms coming from multiple lists are unified.
 	This rule is run by default if there are multiple enrichment results.
@@ -80,7 +81,7 @@ def recurringTermsUnified(termSummary, geneSetsDict, originalTermsSet, maxRepres
 
 
 
-def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Superterms with more significance represent their subterms with
 	less significance.
@@ -99,7 +100,7 @@ def supertermRepresentsLessSignificantSubterm(termSummary, geneSetsDict, origina
 
 
 
-def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Subterms with more significance represent their superterms whose gene list
 	is at least 75% composed of the subterm
@@ -121,7 +122,7 @@ def subtermRepresentsLessSignificantSimilarSuperterm(termSummary, geneSetsDict, 
 
 
 
-def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Subterms with more significance represent their superterms with less
 	significance and less representative power.
@@ -145,7 +146,7 @@ def subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower(ter
 
 
 
-def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	Terms that have a common superterm that has more or equal representative
 	power than them are represented by this superterm
@@ -192,7 +193,7 @@ def commonSupertermInListRepresentsSubtermsWithLessRepresentativePower(termSumma
 
 
 
-def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, originalTermsSet, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
+def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, maxRepresentativeTermSize, idNo, idNo2, gsID, gsID2):
 	'''
 	This rule is to collect large terms into groups, it only works for terms
 	that are larger than maxRepresentativeTermSize.
@@ -219,11 +220,13 @@ def supertermRepresentsSubtermLargerThanMaxRep(termSummary, geneSetsDict, origin
 
 
 def readGmtFile(gmtPath):
-	'''
-	Reads GMT file.
-	In GMT file each line consists of gene set ID, gene set name and genes,
+	"""
+	Read GMT file. In GMT file each line consists of gene set ID, gene set name and genes,
 	all tab separated, no header.
-	'''
+
+	:param str gmtPath: Path of the GMT file
+	"""
+
 	geneSetsDict=dict()#gsID to set of genes mapping
 	gsIDToGsNameDict=dict()#gsID to gene set name mapping
 	try:
@@ -259,11 +262,12 @@ def countTotalRepresentedTermNumber(termSummary):
 
 
 def readTBSListFile(tbsFile):
-	'''
-	Reads the ranked gene set list ("to be summarized" file).
-	Each line consists of a gene set ID, it should be sorted from
-	most important to least
-	'''
+	"""
+	Read the input enrichment result file ("to be summarized" file).
+	Each line consists of a gene set ID, sorted from most important to least
+
+	:param str tbsFile: Path of the enrichment result files
+	"""
 	tbsGsIDs=[]
 	try:
 		f=open(tbsFile, 'r')
@@ -276,10 +280,17 @@ def readTBSListFile(tbsFile):
 
 	return tbsGsIDs
 
-def removeUnknownGeneSetsFromTBS(tbsGsIDs, geneSetsDict):
-	'''
-	Removes unknown gene sets
-	'''
+
+def removeUnknownTermsFromTBS(tbsGsIDs, geneSetsDict):
+	"""
+	Remove unknown gene sets
+
+	:param str tbsFile: Path of the enrichment result files
+	:param dict geneSetsDict: Dictionary mapping gene set (term) IDs to set of genes.
+	"""
+
+	tbsGsIDs=tbsGsIDs.copy()
+
 	idsToRemove=set()
 	for tbsGsID in tbsGsIDs:
 		if not(tbsGsID in geneSetsDict.keys()):
@@ -290,20 +301,40 @@ def removeUnknownGeneSetsFromTBS(tbsGsIDs, geneSetsDict):
 	return tbsGsIDs
 
 
+def removeTermsSmallerThanMinTermSize(tbsGsIDs, geneSetsDict, minTermSize):
+	"""
+	Remove terms smaller than minTermSize
+
+	:param str tbsFile: Path of the enrichment result files
+	:param dict geneSetsDict: Dictionary mapping gene set (term) IDs to set of genes.
+	:param int minTermSize: The minimum size of the terms to be processed. Smaller terms are discarded.
+	"""
+	tbsGsIDs=tbsGsIDs.copy()
+
+	idsToRemove=set()
+	for tbsGsID in tbsGsIDs:
+		if len(geneSetsDict[tbsGsID])<minTermSize:
+			idsToRemove.add(tbsGsID)
+	for idToRemove in idsToRemove:
+			tbsGsIDs.remove(idToRemove)
+	return tbsGsIDs
+
 ##############################################################################
 ##############################################################################
 ##############################################################################
 
 
 def initializeTermSummary(tbsGsIDsList):
-	'''
-	This function initializes the term summary.
+	"""
+	Initialize the term summary.
 	All terms represent themselves.
 	Term summaries are stored in a list.
-	Each member contains representing term ID, list of represented terms,
-	rank (currently rank of the best term)
+	Each member contains gene set (term) ID, list of represented terms,
+	rank (currently rank of the best term).
 	rank starts from 1
-	'''
+
+	:param list tbsGsIDsList: List of terms obtained from enrichment results files
+	"""
 	termSummary=[]
 	for tbsGsIDsNo in range(len(tbsGsIDsList)):
 		tbsGsIDs=tbsGsIDsList[tbsGsIDsNo]

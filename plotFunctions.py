@@ -30,7 +30,7 @@ def orsum_readResultFile(inputFile):
 	Create an array with the results for each analysis.
 
 	:param str inputFile: Path of the result file created by orsum.py
-	
+
 	:returns:
 		- **df** (*pandas.DataFrame*) – Data frame with 4 columns (sizes, labels, ranks, colors)
 		- **allRanks_array** (*numpy.ndarray*) – Array with the rank for each analysis contains in the results file
@@ -88,7 +88,7 @@ def orsum_readResultFile(inputFile):
 def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 	"""
 	Create ans save barplot of the main results from orsum.py.
-	
+
 	:param pandas.DataFrame df: Data frame with 4 columns (sizes, labels, ranks, colors). Created by orsum_readResultFile() function.
 	:param int nbTerm: Number of top results you want to display (MAX = 50).
 	:param int sizeMax: Size max of representing term.
@@ -114,7 +114,7 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 def orsum_heatmap(allRanks_array, df, nbTerm, plotName, conditionName, palette_cmap, ticks):
 	"""
 	Create and save heatmap of the results of each analysis from orsum.py.
-	Field with ranks from each analysis. 
+	Field with ranks from each analysis.
 
 	:param numpy.ndarray allRanks_array: Array with the rank for each analysis contains in the results file. Created by orsum_readResultFile() function.
 	:param pandas.DataFrame df: Data frame with 4 columns (sizes, labels, ranks, colors). Created by orsum_readResultFile() function.
@@ -222,7 +222,7 @@ def orsum_linePlot(df, plotName):
 	# Labels
 	plt.title('Size of each representative term', fontsize = 20)
 	plt.xlabel('Rank')
-	plt.ylabel('Number of term inside the representative term', fontsize = 15)
+	plt.ylabel('Number of terms inside the representative term', fontsize = 15)
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
 
@@ -233,7 +233,7 @@ def createBoundaries4Colorbar(df, step):
 	:param pandas.DataFrame df: Data frame with 4 columns (sizes, labels, ranks, colors). Created by orsum_readResultFile() function.
 	:param int step: Difference between each number in the sequence.
 
-	:returs: **boundariesCB** (*list*) – list of values. 
+	:returs: **boundariesCB** (*list*) – list of values.
 	"""
 	boundariesCB = list(range(0, df['ranks'].max(), step))
 	boundariesCB[0] = df['ranks'].min()
@@ -253,7 +253,7 @@ def orsum_plot(inputFile, outputDir, threshold):
 	Calcul bounderies for colorbar.
 	Create and save severals plot.
 
-	:param str inputFile: Path name fo the orsum results file (termSummaryXX-Summary.tsv).
+	:param str inputFile: Path name of the orsum results file (termSummaryXX-Summary.tsv).
 	:param str outputDir: Folder path name to write the results.
 	:param int threshold: Number of top results you want to display (MAX = 50)
 	"""
@@ -264,8 +264,8 @@ def orsum_plot(inputFile, outputDir, threshold):
 	lineplotName = '{}{}{}'.format(outputDir, os.sep, 'SizesDistribution')
 	# CHECK
 	if(threshold > 50):
-		print("Number of term display MAX 50")
-		exit(0)
+		print("Number of terms to be plotted was greater than 50, it is changed to 50.")
+		threshold = 50
 	# READ FILE AND CALCUL BOUNDARIES
 	df, allRanks_array, resultsId, palette_cmap = orsum_readResultFile(inputFile = inputFile)
 	boundariesCB = createBoundaries4Colorbar(df, step = 100)
