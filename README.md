@@ -30,10 +30,14 @@ conda install -c bioconda orsum
 </code><br>
 <br>
 <br>
-usage: orsum.py [-h] --gmt GMT --files FILES [FILES ...]
+Usage:
+<br>
+<code>
+orsum.py [-h] --gmt GMT --files FILES [FILES ...]
                 [--outputFolder OUTPUTFOLDER] [--maxRepSize MAXREPSIZE]
                 [--minTermSize MINTERMSIZE] [--rules [RULES [RULES ...]]]
                 [--numberOfTermsToPlot NUMBEROFTERMSTOPLOT] [--outputAll]
+</code>
 <br>
 <ul>
 <li>--gmt: Path of the GMT file. (required)
