@@ -104,7 +104,7 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 	plt.figure(figsize = (10, 10))
 	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', color = df_filt['colors'][1])
 	# Labels
-	plt.title('Top results of representative terms', fontsize = 20)
+	plt.title('Top {} representative terms'.format(nbTerm), fontsize = 20)
 	plt.xlabel('Number of represented terms', fontsize = 15)
 	plt.ylabel('')
 	plt.xlim(0, max(df_filt['sizes']))
@@ -220,9 +220,11 @@ def orsum_linePlot(df, plotName):
 	plt.figure(figsize = (10, 10))
 	plt.scatter(df['ranks'], df['sizes'], c = 'purple')
 	# Labels
-	plt.title('Size of each representative term', fontsize = 20)
-	plt.xlabel('Rank')
-	plt.ylabel('Number of terms inside the representative term', fontsize = 15)
+	#plt.title('Size of each representative term', fontsize = 20)
+	plt.title('Representative power vs rank of the representative term', fontsize = 20)
+	plt.xlabel('Rank', fontsize = 15)
+	#plt.ylabel('Number of terms inside the representative term', fontsize = 15)
+	plt.ylabel('Number of represented terms', fontsize = 15)
 	# Save and close plot
 	plt.savefig(plotName, bbox_inches = 'tight', dpi = 300)
 

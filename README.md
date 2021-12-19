@@ -69,7 +69,7 @@ The rules are given below:
 	<li> Super &lt;- Sub (w worse rank) || Superterms will represent their less significant (worse ranked) subterms. This includes equal terms, i.e. the terms that annotate exactly the same set of genes.
 	<li> Sub &lt;- Super (w worse rank, subterm is 75% of superterm) || Subterms will represent their less significant  superterms if subterm gene set constitutes 75% of the superterm gene set.
 	<li> Sub &lt;- Super (w worse rank less representative power) || Subterms will represent their less significant and with less representative power superterms.
-	<li> Common Super &lt;- (Sub Sub) (w less or equal representative power) || Pairs of subterms will be represented by their common superterms that have more representative power.
+	<li> Common Super &lt;- (Sub Sub) (w less representative power) || Pairs of subterms will be represented by their common superterms that have more representative power.
 	<li> Large Super &lt;- Large Sub || Superterms with gene sets exceeding the maximum representative term size threshold will represent their less significant subterms with gene set also exceeding this threshold. This allows selecting one broad term as representative term for the other associated broad terms.
 </ol>
 <br>

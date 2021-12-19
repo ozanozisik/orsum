@@ -78,15 +78,21 @@ if __name__ == "__main__":
 		tbsGsIDsRUT=removeUnknownTermsFromTBS(tbsGsIDs, geneSetsDict)
 		difRUT=len(tbsGsIDs)-len(tbsGsIDsRUT)
 		if(difRUT>0):
-			print(difRUT, 'terms are not in GMT, they are removed.')
+			if(difRUT==1):
+				print(difRUT, 'term is not in GMT, it is removed.')
+			else:
+				print(difRUT, 'terms are not in GMT, they are removed.')
 
 		tbsGsIDsRTS=removeTermsSmallerThanMinTermSize(tbsGsIDsRUT, geneSetsDict, minTermSize)
 		difRTS=len(tbsGsIDsRUT)-len(tbsGsIDsRTS)
 		if(difRTS>0):
-			print(difRTS, 'terms are smaller than minTermSize, they are removed.')
+			if(difRTS==1):
+				print(difRTS, 'term is smaller than minTermSize={}, it is removed.'.format(minTermSize))
+			else:
+				print(difRTS, 'terms are smaller than minTermSize={}, they are removed.'.format(minTermSize))
 
 		if len(tbsGsIDs)==0:
-			print('The IDs in an input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files, and be sure that they are consistent.')
+			print('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.')
 			exit()
 		tbsGsIDsList.append(tbsGsIDs)
 
