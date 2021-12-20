@@ -19,7 +19,7 @@ orsum produces multiple files as output:<br>
 		<ul>
 			<li> the representative terms and how many terms they represent
 			<li> the ranks of the representative terms (for each enrichment result if multiple enrichment results are input)
-			<li> represented term size vs rank. <br>
+			<li> represented term size vs rank of representative terms <br>
 		</ul>
 </ul>
 <br>
