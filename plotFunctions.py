@@ -262,7 +262,7 @@ def orsum_plot(inputFile, outputDir, threshold):
 	# PARAMETERS
 	barplotName = '{}{}{}'.format(outputDir, os.sep, 'Barplot')
 	#heatmapName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
-	heatmapQuartQuantitativeName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap_quartiles_quantitativeColor')
+	heatmapQuartQuantitativeName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
 	lineplotName = '{}{}{}'.format(outputDir, os.sep, 'SizesDistribution')
 	# CHECK
 	if(threshold > 50):

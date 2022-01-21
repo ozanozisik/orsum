@@ -3,14 +3,12 @@
 
 
 """
-Created on Wed Mar 24 13:55:58 2021
-
 @author: Ozan, Morgane T.
 
-orsum enrichment analysis results filtering tool
-This code gets the list of ranked gene set/pathway codes resulting from an
-enrichment analysis and summarizes them at different levels applying more
-relaxed rules at each step.
+orsum enrichment analysis results filtering tool.
+This code gets the list of gene set/pathway IDs resulting from an
+enrichment analysis and lets the significant subterms represent their
+less significant subterms.
 """
 
 from termCombinationLib import *
@@ -19,25 +17,29 @@ from argparse import ArgumentParser, SUPPRESS
 import os
 
 
+VERSION='1.4'
+
+
 def argumentParserFunction():
 	"""
 	"""
 	##Parse arguments
-	parser = ArgumentParser(description = 'This tool summarizes enrichment results', add_help = False)
+	parser = ArgumentParser(description = 'orsum summarizes enrichment results', add_help = False)
 	required = parser.add_argument_group('required arguments')
 	optional = parser.add_argument_group('optional arguments')
 	# Add back help
-	optional.add_argument('-h', '--help', action = 'help', default = SUPPRESS, help = 'show this help message and exit')
+	optional.add_argument('-h', '--help', action = 'help', default = SUPPRESS, help = 'Show this help message and exit')
+	# Add version
+	optional.add_argument('-v', '--version', action = 'version', version=VERSION)
 	# required arguments
 	required.add_argument('--gmt', required = True, help = 'Path of the GMT file.')
 	required.add_argument('--files', required = True, nargs = '+', help = 'Paths of the enrichment result files.')
 	# optional arguments
-	optional.add_argument('--outputFolder', default = ".", help = 'Path of the output result files. If it is not specified, results are written to the current directory.')
-	optional.add_argument('--maxRepSize', type = int, default = 2000, help = 'The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, maxRepSize = 2000')
+	optional.add_argument('--fileAliases', nargs = '+', default=None, help = 'Aliases for input enrichment result files to be used in orsum results')
+	optional.add_argument('--outputFolder', default = ".", help = 'Path for the output result files. If it is not specified, results are written to the current directory.')
+	optional.add_argument('--maxRepSize', type = int, default = int(1E6), help = 'The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, it is larger than any annotation term, which means that it has no effect.')
 	optional.add_argument('--minTermSize', type = int, default = 10, help = 'The minimum size of the terms to be processed. Smaller terms will be discarded. By default, minTermSize = 10')
-	optional.add_argument('--rules', type = int, nargs = '*', help = 'List of ordered numbers of the rules to apply while summarizing. By default, all the rules from 1 to 5 are run.')
-	optional.add_argument('--numberOfTermsToPlot', type = int, default = 50, help = 'The number of representative terms to be presented in barplot and heatmap. By default, numberOfTermsToPlot = 50')
-	optional.add_argument('--outputAll', action = 'store_true', help = 'When this option is used, a summary file is created after applying each rule, otherwise only final summary is created')
+	optional.add_argument('--numberOfTermsToPlot', type = int, default = 50, help = 'The number of representative terms to be presented in barplot and heatmap. By default (and maximum), numberOfTermsToPlot = 50')
 	return(parser)
 
 if __name__ == "__main__":
@@ -49,14 +51,33 @@ if __name__ == "__main__":
 	# Parameters
 	gmtPath=argsDict['gmt']
 	tbsFiles=argsDict['files']
-	outputAll=argsDict['outputAll']
+	fileAliases=argsDict['fileAliases']
+	outputFolder=argsDict['outputFolder']
 	maxRepresentativeTermSize=argsDict['maxRepSize']
 	minTermSize=argsDict['minTermSize']
-	rulesToUseNo=argsDict['rules']
 	numberOfTermsToPlot=argsDict['numberOfTermsToPlot']
-	outputFolder=argsDict['outputFolder']
 
 
+	if fileAliases is None:
+		fileAliases=tbsFiles
+	else:
+		if len(fileAliases)!=len(tbsFiles):
+			print('Number of input files and aliases do not match.\n')
+			exit()
+
+
+	if outputFolder[-1]!=os.sep:
+		outputFolder=outputFolder+os.sep
+
+	if not os.path.isdir(outputFolder):
+		os.mkdir(outputFolder)
+
+
+	logFile=open(outputFolder+'log.txt', 'w')
+	logFile.write('orsum '+VERSION+'\n\n')
+	for k,v in argsDict.items():
+		logFile.write("{}:\t{}\n".format(k,v))
+	logFile.write('\n')
 
 	#Read the GMT file.
 	#The GMT file contains one gene set/pathway at each line, with no header.
@@ -77,103 +98,71 @@ if __name__ == "__main__":
 
 		tbsGsIDsRUT=removeUnknownTermsFromTBS(tbsGsIDs, geneSetsDict)
 		difRUT=len(tbsGsIDs)-len(tbsGsIDsRUT)
-		if(difRUT>0):
-			if(difRUT==1):
-				print(difRUT, 'term is not in GMT, it is removed.')
-			else:
-				print(difRUT, 'terms are not in GMT, they are removed.')
+		if(difRUT>1):
+			print('{} terms are not in GMT, they are removed.'.format(difRUT))
+			logFile.write('{} terms are not in GMT, they are removed.\n'.format(difRUT))
+		elif(difRUT==1):
+			print('{} term is not in GMT, it is removed.'.format(difRUT))
+			logFile.write('{} term is not in GMT, it is removed.\n'.format(difRUT))
 
 		tbsGsIDsRTS=removeTermsSmallerThanMinTermSize(tbsGsIDsRUT, geneSetsDict, minTermSize)
 		difRTS=len(tbsGsIDsRUT)-len(tbsGsIDsRTS)
-		if(difRTS>0):
-			if(difRTS==1):
-				print(difRTS, 'term is smaller than minTermSize={}, it is removed.'.format(minTermSize))
-			else:
-				print(difRTS, 'terms are smaller than minTermSize={}, they are removed.'.format(minTermSize))
 
-		if len(tbsGsIDs)==0:
-			print('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.')
+		if(difRTS>1):
+			print('{} terms are smaller than minTermSize={}, they are removed.'.format(difRTS, minTermSize))
+			logFile.write('{} terms are smaller than minTermSize={}, they are removed.\n'.format(difRTS, minTermSize))
+		elif(difRTS==1):
+			print('{} term is smaller than minTermSize={}, it is removed.'.format(difRTS, minTermSize))
+			logFile.write('{} term is smaller than minTermSize={}, it is removed.\n'.format(difRTS, minTermSize))
+
+		if len(tbsGsIDsRTS)==0:
+			print('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.\n')
+			logFile.write('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.\n')
 			exit()
-		tbsGsIDsList.append(tbsGsIDs)
+		tbsGsIDsList.append(tbsGsIDsRTS)
 
-
+	#termSummary is a list, each element is a list that contains
+	#term ID, the list of represented terms, rank
 	termSummary=initializeTermSummary(tbsGsIDsList)
 
 
-	#Rules are listed here as tuples (function name, explanation, rule no).
-	allRules=[
-		(supertermRepresentsLessSignificantSubterm, 'Super <- Sub (w worse rank) || Superterms represent their less significant (worse ranked) subterms. This includes equal terms, i.e. the terms that annotate exactly the same set of genes.', 1),
-		(subtermRepresentsLessSignificantSimilarSuperterm, 'Sub <- Super (w worse rank, subterm is 75% of superterm) || Subterms represent their less significant  superterms if subterm gene set constitutes 75% of the superterm gene set.', 2),
-		(subtermRepresentsSupertermWithLessSignificanceAndLessRepresentativePower, 'Sub <- Super (w worse rank less representative power) || Subterms represent their less significant and with less representative power superterms. Representative power is the number of terms they represent.', 3),
-		(commonSupertermInListRepresentsSubtermsWithLessRepresentativePower, 'Common Super <- (Sub Sub) (w less or equal representative power) || Pairs of subterms are represented by their common superterms that have more representative power.', 4),
-		(supertermRepresentsSubtermLargerThanMaxRep, 'Large Super <- Large Sub || Superterms larger than maxRepSize represent their less significant subterms which are also larger than maxRepSize', 5)
-	]
+	logFile.write('\n')
 
 
+	#Rules: (function name, description).
 	#This rule is run by default if there are multiple enrichment results
 	multipleListsUnifyRule=(recurringTermsUnified,'Same terms in multiple lists are unified')
 
-	#rulesToApply contains the rules to be applied, based on arguments (by default
-	#all rules are applied)
-	if rulesToUseNo==None:
-		rulesToApply=allRules
-	else:
-		try:
-			rulesToApply=[allRules[int(r)-1] for r in rulesToUseNo]
-		except IndexError:
-			print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
-			exit()
-		except ValueError:
-			print('For the rules parameter, numbers between 1-5 (inclusive) must be given')
-			exit()
+	supertermRepresentsLessSignificantSubtermRule=(supertermRepresentsLessSignificantSubterm, 'Superterms represent their less significant (worse ranked) subterms. This includes equal terms, i.e. the terms that annotate exactly the same set of genes.')
 
-
-
-	#Rules are applied one by one.
-	#After application of each rule, previously applied rules are applied again
-	#starting from the first.
-
-
-	if outputFolder[-1]!=os.sep:
-		outputFolder=outputFolder+os.sep
-
-	if not os.path.isdir(outputFolder):
-		os.mkdir(outputFolder)
 
 	print('\n\n')
 	if(len(tbsFiles)==1):
-		print('Initial term number:',len(termSummary),'\n')
+		print('Initial term number: {}\n'.format(len(termSummary)))
+		logFile.write('Initial term number: {}\n\n'.format(len(termSummary)))
 	else:
-		print('Initial term number (recurring terms in different lists are not merged yet, each one is counted):',len(termSummary),'\n')
-
+		print('Initial term number (recurring terms in different lists are not merged yet, each one is counted): {}\n'.format(len(termSummary)))
+		logFile.write('Initial term number (recurring terms in different lists are not merged yet, each one is counted): {}\n\n'.format(len(termSummary)))
 		#Apply multipleListsUnifyRule to unify the same terms from multiple lists
 		print(multipleListsUnifyRule[1])
+		logFile.write(multipleListsUnifyRule[1]+'\n')
 		termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, multipleListsUnifyRule[0])
-		print('Representing term number:',len(termSummary),'\n')
+		print('Representing term number: {}\n'.format(len(termSummary)))
+		logFile.write('Representing term number: {}\n\n'.format(len(termSummary)))
+
+	#Apply rule
+	print(supertermRepresentsLessSignificantSubtermRule[1])
+	logFile.write(supertermRepresentsLessSignificantSubtermRule[1]+'\n')
+	termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, supertermRepresentsLessSignificantSubtermRule[0])
+	print('Representing term number:{}\n'.format(len(termSummary)))
+	logFile.write('Representing term number:{}\n\n'.format(len(termSummary)))
+
+	fileName=outputFolder+'filteredResult'
+
+	writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
+	writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, fileName+'.html')
+	writeRepresentativeToRepresentedIDsFile(termSummary, fileName+'IDMapping.tsv')
+	orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot)
 
 
-	processStep=1
-	for i in range(len(rulesToApply)):
-		#Apply rule
-		print(rulesToApply[i][1])
-		termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, rulesToApply[i][0])
-
-		#Apply previously applied rules again
-		for j in range(0,i):
-			termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, rulesToApply[j][0])
-
-		print('Representing term number:',len(termSummary),'\n')
-
-		fileName=outputFolder+'termSummary'+'{:02d}'.format(i+1)+'-Rule'+'{:02d}'.format(rulesToApply[i][2])
-
-		if(outputAll or i==len(rulesToApply)-1):
-			#writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Detailed.tsv', outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv')
-			writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
-			writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileName+'.html')
-
-		if(i==len(rulesToApply)-1):
-			#orsum_plot(outputFolder+'termSummary'+str(rulesToApply[i][2])+'-Summary.tsv', outputFolder, 50)
-			orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot)
-
-		processStep=processStep+1
-
+	logFile.close()
