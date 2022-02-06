@@ -260,9 +260,9 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		f.write('Representing term id\tRepresenting term name\tRepresenting term rank')
 		for tbsGsIDsNo in range(len(tbsGsIDsList)):
-			f.write('\t'+os.path.basename(fileAliases[tbsGsIDsNo])+ ' term id')
-			f.write('\t'+os.path.basename(fileAliases[tbsGsIDsNo])+ ' term name')
-			f.write('\t'+os.path.basename(fileAliases[tbsGsIDsNo])+ ' term rank')
+			f.write('\t'+fileAliases[tbsGsIDsNo]+ ' term id')
+			f.write('\t'+fileAliases[tbsGsIDsNo]+ ' term name')
+			f.write('\t'+fileAliases[tbsGsIDsNo]+ ' term rank')
 		f.write('\n')
 
 		for ts in termSummary:
@@ -295,7 +295,7 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		f.write('Representing term id\tRepresenting term name\tRepresenting term size\tRepresenting term rank\tRepresented term number')
 		for tbsGsIDsNo in range(len(tbsGsIDsList)):
-			f.write('\t'+os.path.basename(fileAliases[tbsGsIDsNo])+ ' term rank')
+			f.write('\t'+fileAliases[tbsGsIDsNo]+ ' term rank')
 		f.write('\n')
 
 		for ts in termSummary:
@@ -375,7 +375,7 @@ def getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGs
 	for tbsGsIDsNo in range(len(tbsGsIDsList)):
 		txt=txt+'\t'+'<p style="margin-left:40px">'+'\n'
 		if(len(fileAliases)>1):
-			txt=txt+'\t'+os.path.basename(fileAliases[tbsGsIDsNo])+'<br>'+'\n'
+			txt=txt+'\t'+fileAliases[tbsGsIDsNo]+'<br>'+'\n'
 		for reprT in ts[1]:
 			if reprT in tbsGsIDsList[tbsGsIDsNo]:
 				txt=txt+'\t'+reprT+' '+gsIDToGsNameDict[reprT]+' (rank: '+str(tbsGsIDsList[tbsGsIDsNo].index(reprT)+1)+', term size: '+ str(len(geneSetsDict[reprT])) +')<br>'+'\n'

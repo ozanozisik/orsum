@@ -59,7 +59,9 @@ if __name__ == "__main__":
 
 
 	if fileAliases is None:
-		fileAliases=tbsFiles
+		fileAliases=[]
+		for fname in tbsFiles:
+			fileAliases.append(os.path.basename(fname))
 	else:
 		if len(fileAliases)!=len(tbsFiles):
 			print('Number of input files and aliases do not match.\n')
@@ -94,6 +96,7 @@ if __name__ == "__main__":
 	for tf in tbsFiles:
 		print()
 		print('Processing', tf)
+		logFile.write('\nProcessing {}\n'.format(tf))
 		tbsGsIDs=readTBSListFile(tf)
 
 		tbsGsIDsRUT=removeUnknownTermsFromTBS(tbsGsIDs, geneSetsDict)
@@ -116,8 +119,8 @@ if __name__ == "__main__":
 			logFile.write('{} term is smaller than minTermSize={}, it is removed.\n'.format(difRTS, minTermSize))
 
 		if len(tbsGsIDsRTS)==0:
-			print('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.\n')
-			logFile.write('There is no term left to be summarized. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Please check your command, the GMT file and input files.\n')
+			print('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
+			logFile.write('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
 			exit()
 		tbsGsIDsList.append(tbsGsIDsRTS)
 

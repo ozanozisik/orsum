@@ -51,7 +51,7 @@ def orsum_readResultFile(inputFile):
 			lheaderLine = headerLine.rstrip('\n').split('\t')
 			for r in range(5, len(lheaderLine)):
 				lel = lheaderLine[r].split(' ')
-				resultsId.append(os.path.basename(lel[0]))
+				resultsId.append(lel[0])
 			for line in resultsFileHandler:
 				lLine = line.rstrip('\n').split('\t')
 				indRanks = []
