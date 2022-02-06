@@ -37,7 +37,7 @@ def argumentParserFunction():
 	# optional arguments
 	optional.add_argument('--fileAliases', nargs = '+', default=None, help = 'Aliases for input enrichment result files to be used in orsum results')
 	optional.add_argument('--outputFolder', default = ".", help = 'Path for the output result files. If it is not specified, results are written to the current directory.')
-	optional.add_argument('--maxRepSize', type = int, default = int(1E6), help = 'The maximum size of a representative term. Terms bigger than this will not be discarded but also will not be used to represent other terms. By default, it is larger than any annotation term, which means that it has no effect.')
+	optional.add_argument('--maxRepSize', type = int, default = int(1E6), help = 'The maximum size of a representative term. Terms larger than this will not be discarded but also will not be used to represent other terms. By default, it is larger than any annotation term, which means that it has no effect.')
 	optional.add_argument('--minTermSize', type = int, default = 10, help = 'The minimum size of the terms to be processed. Smaller terms will be discarded. By default, minTermSize = 10')
 	optional.add_argument('--numberOfTermsToPlot', type = int, default = 50, help = 'The number of representative terms to be presented in barplot and heatmap. By default (and maximum), numberOfTermsToPlot = 50')
 	return(parser)
