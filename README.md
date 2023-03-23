@@ -1,4 +1,4 @@
-# orsum v1.4
+# orsum v1.5
 orsum, which stands for "over-representation summary", is a tool to filter long lists of enriched terms resulting from one or more enrichment analyses. Filtering in orsum is based on a simple
 principle, a term is discarded if there is a more significant term that annotates at least the same genes; in other words, the more significant ancestor (general) term represents the less significant descendant (specific) term. The remaining term becomes the representative term for the discarded term. orsum works on hierarchical annotations, e.g. GO and REACTOME.<br>
 
@@ -33,7 +33,7 @@ Usage:
 orsum.py [-h] [-v] --gmt GMT --files FILES [FILES ...]
                 [--fileAliases FILEALIASES [FILEALIASES ...]]
                 [--outputFolder OUTPUTFOLDER] [--maxRepSize MAXREPSIZE]
-                [--minTermSize MINTERMSIZE]
+                [--maxTermSize MAXTERMSIZE] [--minTermSize MINTERMSIZE]
                 [--numberOfTermsToPlot NUMBEROFTERMSTOPLOT]
 </code>
 <br>
@@ -42,7 +42,8 @@ orsum.py [-h] [-v] --gmt GMT --files FILES [FILES ...]
 <li>--files: Paths of the enrichment result files. (required)
 <li>--fileAliases: Aliases for input enrichment result files to be used in orsum results. (optional, by default file names are used)
 <li>--outputFolder: Path for the output result files. If it is not specified, results are written to the current directory. (optional, default=".")
-<li>--maxRepSize: The maximum size of a representative term. Terms larger than this size will not be discarded but also will not be able to represent other terms. (optional, default is a number larger than any annotation term, which means that it has no effect.)
+<li>--maxRepSize: The maximum size of a representative term. Terms larger than this size will not be discarded but also will not be able to represent other terms. (optional, default is a number larger than any annotation term, which means that it has no effect)
+<li>--maxTermSize: The maximum size of the terms to be processed. Larger terms will be discarded. (optional, default is a number larger than any annotation term, which means that it has no effect)
 <li>--minTermSize: The minimum size of the terms to be processed. Smaller terms will be discarded. (optional, default=10)
 <li>--numberOfTermsToPlot: The number of representative terms to be presented in barplot and heatmap. (optional, default=50)
 </ul>
@@ -56,7 +57,7 @@ orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --files 'Enrichment-GOBP.txt' --outputF
 
 Example command:<br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.txt' 'Enrichment-Method2-Reac.txt' 'Enrichment-Method3-Reac.txt' --fileAliases 'Method 1' 'Method 2' 'Method 3' --outputFolder 'OutputReac' --maxRepSize 2000 --minTermSize 20 --numberOfTermsToPlot 20
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.txt' 'Enrichment-Method2-Reac.txt' 'Enrichment-Method3-Reac.txt' --fileAliases 'Method 1' 'Method 2' 'Method 3' --outputFolder 'OutputReac' --maxRepSize 2000 --maxTermSize 3000 --minTermSize 20 --numberOfTermsToPlot 20
 </code><br>
 
 <br>

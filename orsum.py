@@ -37,7 +37,8 @@ def argumentParserFunction():
 	# optional arguments
 	optional.add_argument('--fileAliases', nargs = '+', default=None, help = 'Aliases for input enrichment result files to be used in orsum results')
 	optional.add_argument('--outputFolder', default = ".", help = 'Path for the output result files. If it is not specified, results are written to the current directory.')
-	optional.add_argument('--maxRepSize', type = int, default = int(1E6), help = 'The maximum size of a representative term. Terms larger than this will not be discarded but also will not be used to represent other terms. By default, it is larger than any annotation term, which means that it has no effect.')
+	optional.add_argument('--maxRepSize', type = int, default = int(1E6), help = 'The maximum size of a representative term. Terms larger than this will not be discarded but also will not be used to represent other terms. By default, it is larger than any annotation term (1E6), which means that it has no effect.')
+	optional.add_argument('--maxTermSize', type = int, default = int(1E6), help = 'The maximum size of the terms to be processed. Larger terms will be discarded. By default, it is larger than any annotation term (1E6), which means that it has no effect.')
 	optional.add_argument('--minTermSize', type = int, default = 10, help = 'The minimum size of the terms to be processed. Smaller terms will be discarded. By default, minTermSize = 10')
 	optional.add_argument('--numberOfTermsToPlot', type = int, default = 50, help = 'The number of representative terms to be presented in barplot and heatmap. By default (and maximum), numberOfTermsToPlot = 50')
 	return(parser)
@@ -50,10 +51,11 @@ if __name__ == "__main__":
 
 	# Parameters
 	gmtPath=argsDict['gmt']
-	tbsFiles=argsDict['files']
+	tbsFiles=argsDict['files']#to-be-summarized files
 	fileAliases=argsDict['fileAliases']
 	outputFolder=argsDict['outputFolder']
 	maxRepresentativeTermSize=argsDict['maxRepSize']
+	maxTermSize=argsDict['maxTermSize']
 	minTermSize=argsDict['minTermSize']
 	numberOfTermsToPlot=argsDict['numberOfTermsToPlot']
 
@@ -110,19 +112,29 @@ if __name__ == "__main__":
 
 		tbsGsIDsRTS=removeTermsSmallerThanMinTermSize(tbsGsIDsRUT, geneSetsDict, minTermSize)
 		difRTS=len(tbsGsIDsRUT)-len(tbsGsIDsRTS)
-
 		if(difRTS>1):
 			print('{} terms are smaller than minTermSize={}, they are removed.'.format(difRTS, minTermSize))
 			logFile.write('{} terms are smaller than minTermSize={}, they are removed.\n'.format(difRTS, minTermSize))
 		elif(difRTS==1):
 			print('{} term is smaller than minTermSize={}, it is removed.'.format(difRTS, minTermSize))
 			logFile.write('{} term is smaller than minTermSize={}, it is removed.\n'.format(difRTS, minTermSize))
+		
+		tbsGsIDsRTL=removeTermsLargerThanMaxTermSize(tbsGsIDsRTS, geneSetsDict, maxTermSize)
+		difRTL=len(tbsGsIDsRTS)-len(tbsGsIDsRTL)
+		if(difRTL>1):
+			print('{} terms are larger than maxTermSize={}, they are removed.'.format(difRTL, maxTermSize))
+			logFile.write('{} terms are larger than maxTermSize={}, they are removed.\n'.format(difRTL, maxTermSize))
+		elif(difRTL==1):
+			print('{} term is larger than maxTermSize={}, it is removed.'.format(difRTL, maxTermSize))
+			logFile.write('{} term is larger than maxTermSize={}, it is removed.\n'.format(difRTL, maxTermSize))
+		
+		tbsGsIDsFinal=tbsGsIDsRTL.copy()
 
-		if len(tbsGsIDsRTS)==0:
-			print('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
+		if len(tbsGsIDsFinal)==0:
+			print('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.')
 			logFile.write('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
-			exit()
-		tbsGsIDsList.append(tbsGsIDsRTS)
+		else:
+			tbsGsIDsList.append(tbsGsIDsFinal)
 
 	#termSummary is a list, each element is a list that contains
 	#term ID, the list of represented terms, rank
@@ -140,7 +152,12 @@ if __name__ == "__main__":
 
 
 	print('\n\n')
-	if(len(tbsFiles)==1):
+	
+	if(len(tbsGsIDsList)==0):
+		print('There is no valid file to be summarized.')
+		logFile.write('There is no valid file to be summarized.\n')
+		exit()
+	elif(len(tbsGsIDsList)==1):
 		print('Initial term number: {}\n'.format(len(termSummary)))
 		logFile.write('Initial term number: {}\n\n'.format(len(termSummary)))
 	else:
@@ -161,11 +178,15 @@ if __name__ == "__main__":
 	logFile.write('Representing term number:{}\n\n'.format(len(termSummary)))
 
 	fileName=outputFolder+'filteredResult'
+	
 
-	writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
-	writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, fileName+'.html')
+	writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
+	writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'.html')
 	writeRepresentativeToRepresentedIDsFile(termSummary, fileName+'IDMapping.tsv')
 	orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot)
 
+	writeTermSummaryFileClustered(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'-SummaryClustered.tsv', numberOfTermsToPlot)
+	orsum_plot(fileName+'-SummaryClustered.tsv', outputFolder, numberOfTermsToPlot, heatmapName = 'HeatmapClustered')
+	os.remove(fileName+'-SummaryClustered.tsv')
 
 	logFile.close()
