@@ -12,11 +12,12 @@ orsum produces multiple files as output:<br>
 	<li> An HTML file which presents the filtered results - the list of representative terms - with an option to click on each term to see the represented (discarded) terms.
 	<li> Two TSV files (-Summary.tsv, -Detailed.tsv) which contain the information in the HTML file in different formats, with some extras, like term size. -Summary.tsv file contains only representative terms while -Detailed.tsv additionally contains representative terms. -Summary.tsv file is very useful for getting an overview when comparing multiple enrichment results.
 	<li> A TSV file that consists of two columns, mapping representative term IDs to representing term IDs. This file is for programmatic access in case it is needed.
-	<li> Three figures for<br>
+	<li> Four figures:<br>
 		<ul>
-			<li> the representative terms and how many terms they represent
-			<li> the ranks of the representative terms (for each enrichment result if multiple enrichment results are input)
-			<li> represented term size vs rank of representative terms <br>
+			<li> A heatmap presenting the top representative terms, colored according to the quartile of their ranks in each input enrichment result.
+			<li> A clustered heatmap presenting the top representative terms, colored according to the quartile of their ranks in each input enrichment result. This is useful to see common and different terms between multiple inputs.
+			<li> A barplot presenting the top representative terms and how many terms they represent.	
+			<li> A plot representing term size vs rank of representative terms <br>
 		</ul>
 </ul>
 <br>
