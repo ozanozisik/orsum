@@ -61,8 +61,11 @@ orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.txt' 'E
 </code><br>
 
 <br>
+
+If you use orsum, please cite our publication:
+
+Ozisik O, Térézol M, Baudot A. orsum: a Python package for filtering and comparing enrichment analyses using a simple principle. BMC Bioinformatics. 2022 Jul 23;23(1):293. doi: 10.1186/s12859-022-04828-2.
+
 <br>
 <br>
-
-
 This work is conducted in the Networks and Systems Biology for Diseases group of Anaïs Baudot (https://www.marseille-medical-genetics.org/a-baudot/).
