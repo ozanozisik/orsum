@@ -9,6 +9,8 @@ Functions for filtering
 
 import numpy as np
 import os
+from scipy.cluster.hierarchy import dendrogram, linkage
+import pandas as pd
 
 ##############################################################################
 
@@ -216,6 +218,26 @@ def removeTermsSmallerThanMinTermSize(tbsGsIDs, geneSetsDict, minTermSize):
 			tbsGsIDs.remove(idToRemove)
 	return tbsGsIDs
 
+
+def removeTermsLargerThanMaxTermSize(tbsGsIDs, geneSetsDict, maxTermSize):
+	"""
+	Remove terms larger than maxTermSize
+
+	:param list tbsGsIDs: Term IDs list
+	:param dict geneSetsDict: Dictionary mapping term IDs to set of genes.
+	:param int maxTermSize: The maximum size of the terms to be processed. Larger terms are discarded.
+	:return: **tbsGsIDs** (*list*) – Term IDs list after removal of large terms
+	"""
+	tbsGsIDs=tbsGsIDs.copy()
+
+	idsToRemove=set()
+	for tbsGsID in tbsGsIDs:
+		if len(geneSetsDict[tbsGsID])>maxTermSize:
+			idsToRemove.add(tbsGsID)
+	for idToRemove in idsToRemove:
+			tbsGsIDs.remove(idToRemove)
+	return tbsGsIDs
+
 ##############################################################################
 ##############################################################################
 ##############################################################################
@@ -250,7 +272,8 @@ def initializeTermSummary(tbsGsIDsList):
 ##############################################################################
 
 
-def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, termSummaryFile, termSummaryFile2):
+
+def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, termSummaryFile, termSummaryFile2):
 	'''
 	Writes the results.
 	'''
@@ -321,7 +344,7 @@ def writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 		print("I/O error while writing term summary file.")
 
 
-def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases, termSummaryFile):
+def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, termSummaryFile):
 	'''
 	Writes the results to an HTML file
 	'''
@@ -337,7 +360,7 @@ def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 		for ts in termSummary:
 			#f.write(getTextForTSElement(ts, gsIDToGsNameDict))
-			f.write(getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases))
+			f.write(getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases))
 
 		f.write('</body>\n')
 		f.write('</html>\n')
@@ -348,6 +371,75 @@ def writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsLi
 
 	except IOError:
 		print("I/O error while writing term summary file.")
+
+
+
+
+def writeTermSummaryFileClustered(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, termSummaryFile, nbTerm):
+	'''
+	Writes the top results as clustered. The purpose of this file is to be
+	consumed by the plot function to create a clustered heatmap.
+	It can then be deleted (which is done by orsum.py).
+	'''
+	try:
+		
+		if(nbTerm > 50):
+			print("Number of terms to be plotted was greater than 50, it is changed to 50.")
+			nbTerm = 50
+		
+		termSummary2=termSummary[0:nbTerm]
+		
+		ranksPerInputFile=dict()
+		for tbsGsIDsNo in range(len(tbsGsIDsList)):
+			ranksPerInputFile[fileAliases[tbsGsIDsNo]]=[]
+
+		for ts in termSummary2:
+			for tbsGsIDsNo in range(len(tbsGsIDsList)):
+				found=None
+				for reprT in ts[1]:
+					try:
+						rank=tbsGsIDsList[tbsGsIDsNo].index(reprT)
+						if found==None or rank<found:
+							found=rank
+					except ValueError:
+						pass
+				if found!=None:
+					found=found+1 #rank starts from 1
+				ranksPerInputFile[fileAliases[tbsGsIDsNo]].append(found)
+		
+		dfRanksPerInputFile=pd.DataFrame.from_dict(ranksPerInputFile)
+		
+		dfRanksPerInputFileNoNone=dfRanksPerInputFile.copy(deep=True) #This will be used for clustering
+		dfRanksPerInputFileNoNone=dfRanksPerInputFileNoNone.fillna(nbTerm+1) #We are assigning a value to "None"s
+		
+		Z = linkage(dfRanksPerInputFileNoNone, 'average')
+		dn = dendrogram(Z)
+		
+		
+		#Summary of summary
+		f=open(termSummaryFile, 'w')
+
+		f.write('Representing term id\tRepresenting term name\tRepresenting term size\tRepresenting term rank\tRepresented term number')
+		for tbsGsIDsNo in range(len(tbsGsIDsList)):
+			f.write('\t'+fileAliases[tbsGsIDsNo]+ ' term rank')
+		f.write('\n')
+		
+		
+		for leaf in dn['leaves']:
+			ts=termSummary2[leaf]
+			f.write(ts[0]+'\t'+gsIDToGsNameDict[ts[0]]+'\t'+str(len(geneSetsDict[ts[0]]))+'\t'+str(ts[2])+'\t'+str(len(ts[1])))
+
+			for tbsGsIDsNo in range(len(tbsGsIDsList)):
+				found=ranksPerInputFile[fileAliases[tbsGsIDsNo]][leaf]
+				if found==None:
+					found='None'
+				f.write('\t'+str(found))
+			f.write('\n')
+		f.close()
+
+	except IOError:
+		print("I/O error while writing term summary file.")
+
 
 
 
@@ -366,7 +458,7 @@ def writeRepresentativeToRepresentedIDsFile(termSummary, outputFile):
 
 
 
-def getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, tbsFiles, fileAliases):
+def getTextForTSElementMultiEnrichment(ts, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases):
 	txt='\n'
 	txt=txt+'<details>'+'\n'
 	#txt=txt+'<summary>'+ts[0]+' '+gsIDToGsNameDict[ts[0]]+' '+str(ts[2])+'</summary>'+'\n'

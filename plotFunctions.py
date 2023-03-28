@@ -50,8 +50,9 @@ def orsum_readResultFile(inputFile):
 			headerLine = resultsFileHandler.readline()
 			lheaderLine = headerLine.rstrip('\n').split('\t')
 			for r in range(5, len(lheaderLine)):
-				lel = lheaderLine[r].split(' ')
-				resultsId.append(lel[0])
+				if lheaderLine[r].endswith(' term rank'):
+					lheaderLine[r] = lheaderLine[r][:-10]
+				resultsId.append(lheaderLine[r])
 			for line in resultsFileHandler:
 				lLine = line.rstrip('\n').split('\t')
 				indRanks = []
@@ -246,7 +247,7 @@ def createBoundaries4Colorbar(df, step):
 	return(boundariesCB)
 
 
-def orsum_plot(inputFile, outputDir, threshold):
+def orsum_plot(inputFile, outputDir, threshold, heatmapName = 'Heatmap'):
 	"""
 	Main function.
 
@@ -262,7 +263,7 @@ def orsum_plot(inputFile, outputDir, threshold):
 	# PARAMETERS
 	barplotName = '{}{}{}'.format(outputDir, os.sep, 'Barplot')
 	#heatmapName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
-	heatmapQuartQuantitativeName = '{}{}{}'.format(outputDir, os.sep, 'Heatmap')
+	heatmapQuartQuantitativeName = '{}{}{}'.format(outputDir, os.sep, heatmapName)
 	lineplotName = '{}{}{}'.format(outputDir, os.sep, 'SizesDistribution')
 	# CHECK
 	if(threshold > 50):

@@ -1,4 +1,4 @@
-# orsum v1.4
+# orsum v1.5
 orsum, which stands for "over-representation summary", is a tool to filter long lists of enriched terms resulting from one or more enrichment analyses. Filtering in orsum is based on a simple
 principle, a term is discarded if there is a more significant term that annotates at least the same genes; in other words, the more significant ancestor (general) term represents the less significant descendant (specific) term. The remaining term becomes the representative term for the discarded term. orsum works on hierarchical annotations, e.g. GO and REACTOME.<br>
 
@@ -12,11 +12,12 @@ orsum produces multiple files as output:<br>
 	<li> An HTML file which presents the filtered results - the list of representative terms - with an option to click on each term to see the represented (discarded) terms.
 	<li> Two TSV files (-Summary.tsv, -Detailed.tsv) which contain the information in the HTML file in different formats, with some extras, like term size. -Summary.tsv file contains only representative terms while -Detailed.tsv additionally contains representative terms. -Summary.tsv file is very useful for getting an overview when comparing multiple enrichment results.
 	<li> A TSV file that consists of two columns, mapping representative term IDs to representing term IDs. This file is for programmatic access in case it is needed.
-	<li> Three figures for<br>
+	<li> Four figures:<br>
 		<ul>
-			<li> the representative terms and how many terms they represent
-			<li> the ranks of the representative terms (for each enrichment result if multiple enrichment results are input)
-			<li> represented term size vs rank of representative terms <br>
+			<li> A heatmap presenting the top representative terms, colored according to the quartile of their ranks in each input enrichment result.
+			<li> A clustered heatmap presenting the top representative terms, colored according to the quartile of their ranks in each input enrichment result. This is useful to see common and different terms between multiple inputs.
+			<li> A barplot presenting the top representative terms and how many terms they represent.	
+			<li> A plot representing term size vs rank of representative terms <br>
 		</ul>
 </ul>
 <br>
@@ -33,7 +34,7 @@ Usage:
 orsum.py [-h] [-v] --gmt GMT --files FILES [FILES ...]
                 [--fileAliases FILEALIASES [FILEALIASES ...]]
                 [--outputFolder OUTPUTFOLDER] [--maxRepSize MAXREPSIZE]
-                [--minTermSize MINTERMSIZE]
+                [--maxTermSize MAXTERMSIZE] [--minTermSize MINTERMSIZE]
                 [--numberOfTermsToPlot NUMBEROFTERMSTOPLOT]
 </code>
 <br>
@@ -42,7 +43,8 @@ orsum.py [-h] [-v] --gmt GMT --files FILES [FILES ...]
 <li>--files: Paths of the enrichment result files. (required)
 <li>--fileAliases: Aliases for input enrichment result files to be used in orsum results. (optional, by default file names are used)
 <li>--outputFolder: Path for the output result files. If it is not specified, results are written to the current directory. (optional, default=".")
-<li>--maxRepSize: The maximum size of a representative term. Terms larger than this size will not be discarded but also will not be able to represent other terms. (optional, default is a number larger than any annotation term, which means that it has no effect.)
+<li>--maxRepSize: The maximum size of a representative term. Terms larger than this size will not be discarded but also will not be able to represent other terms. (optional, default is a number larger than any annotation term, which means that it has no effect)
+<li>--maxTermSize: The maximum size of the terms to be processed. Larger terms will be discarded. (optional, default is a number larger than any annotation term, which means that it has no effect)
 <li>--minTermSize: The minimum size of the terms to be processed. Smaller terms will be discarded. (optional, default=10)
 <li>--numberOfTermsToPlot: The number of representative terms to be presented in barplot and heatmap. (optional, default=50)
 </ul>
@@ -56,12 +58,15 @@ orsum.py --gmt 'hsapiens.GO:BP.name.gmt' --files 'Enrichment-GOBP.txt' --outputF
 
 Example command:<br>
 <code>
-orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.txt' 'Enrichment-Method2-Reac.txt' 'Enrichment-Method3-Reac.txt' --fileAliases 'Method 1' 'Method 2' 'Method 3' --outputFolder 'OutputReac' --maxRepSize 2000 --minTermSize 20 --numberOfTermsToPlot 20
+orsum.py --gmt 'hsapiens.REAC.name.gmt' --files 'Enrichment-Method1-Reac.txt' 'Enrichment-Method2-Reac.txt' 'Enrichment-Method3-Reac.txt' --fileAliases 'Method 1' 'Method 2' 'Method 3' --outputFolder 'OutputReac' --maxRepSize 2000 --maxTermSize 3000 --minTermSize 20 --numberOfTermsToPlot 20
 </code><br>
 
 <br>
+
+If you use orsum, please cite our publication:
+
+Ozisik O, Térézol M, Baudot A. orsum: a Python package for filtering and comparing enrichment analyses using a simple principle. BMC Bioinformatics. 2022 Jul 23;23(1):293. doi: 10.1186/s12859-022-04828-2.
+
 <br>
 <br>
-
-
 This work is conducted in the Networks and Systems Biology for Diseases group of Anaïs Baudot (https://www.marseille-medical-genetics.org/a-baudot/).
