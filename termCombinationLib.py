@@ -221,12 +221,12 @@ def removeTermsSmallerThanMinTermSize(tbsGsIDs, geneSetsDict, minTermSize):
 
 def removeTermsLargerThanMaxTermSize(tbsGsIDs, geneSetsDict, maxTermSize):
 	"""
-	Remove terms smaller than minTermSize
+	Remove terms larger than maxTermSize
 
 	:param list tbsGsIDs: Term IDs list
 	:param dict geneSetsDict: Dictionary mapping term IDs to set of genes.
-	:param int minTermSize: The minimum size of the terms to be processed. Smaller terms are discarded.
-	:return: **tbsGsIDs** (*list*) – Term IDs list after removal of small terms
+	:param int maxTermSize: The maximum size of the terms to be processed. Larger terms are discarded.
+	:return: **tbsGsIDs** (*list*) – Term IDs list after removal of large terms
 	"""
 	tbsGsIDs=tbsGsIDs.copy()
 
