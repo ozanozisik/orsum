@@ -17,7 +17,7 @@ from argparse import ArgumentParser, SUPPRESS
 import os
 
 
-VERSION='1.4'
+VERSION='1.5.0'
 
 
 def argumentParserFunction():
