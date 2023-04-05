@@ -1,4 +1,4 @@
-# orsum v1.5
+# orsum v1.6
 orsum, which stands for "over-representation summary", is a tool to filter long lists of enriched terms resulting from one or more enrichment analyses. Filtering in orsum is based on a simple
 principle, a term is discarded if there is a more significant term that annotates at least the same genes; in other words, the more significant ancestor (general) term represents the less significant descendant (specific) term. The remaining term becomes the representative term for the discarded term. orsum works on hierarchical annotations, e.g. GO and REACTOME.<br>
 
