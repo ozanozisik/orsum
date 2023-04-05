@@ -16,7 +16,6 @@ import numpy as np
 import seaborn as sns
 import pandas as ps
 import matplotlib.pyplot as plt
-import matplotlib.ticker as tck
 import matplotlib.colors as colors
 
 # FUNCTIONS

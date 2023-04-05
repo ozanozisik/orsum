@@ -11,13 +11,16 @@ enrichment analysis and lets the significant subterms represent their
 less significant subterms.
 """
 
-from termCombinationLib import *
+from termCombinationLib import readGmtFile, readInputEnrichmentResultFile
+from termCombinationLib import removeUnknownTerms, removeTermsSmallerThanMinTermSize, removeTermsLargerThanMaxTermSize
+from termCombinationLib import initializeTermSummary, recurringTermsUnified, supertermRepresentsLessSignificantSubterm, applyRule
+from termCombinationLib import writeTermSummaryFile, writeHTMLSummaryFile, writeRepresentativeToRepresentedIDsFile, writeTermSummaryFileClustered
 from plotFunctions import orsum_plot
 from argparse import ArgumentParser, SUPPRESS
 import os
 
 
-VERSION='1.5.0'
+VERSION='1.6.0'
 
 
 def argumentParserFunction():
@@ -51,7 +54,7 @@ if __name__ == "__main__":
 
 	# Parameters
 	gmtPath=argsDict['gmt']
-	tbsFiles=argsDict['files']#to-be-summarized files
+	inputEnrichmentResultFiles=argsDict['files']
 	fileAliases=argsDict['fileAliases']
 	outputFolder=argsDict['outputFolder']
 	maxRepresentativeTermSize=argsDict['maxRepSize']
@@ -60,28 +63,36 @@ if __name__ == "__main__":
 	numberOfTermsToPlot=argsDict['numberOfTermsToPlot']
 
 
-	if fileAliases is None:
-		fileAliases=[]
-		for fname in tbsFiles:
-			fileAliases.append(os.path.basename(fname))
-	else:
-		if len(fileAliases)!=len(tbsFiles):
-			print('Number of input files and aliases do not match.\n')
-			exit()
-
-
 	if outputFolder[-1]!=os.sep:
 		outputFolder=outputFolder+os.sep
-
 	if not os.path.isdir(outputFolder):
 		os.mkdir(outputFolder)
-
 
 	logFile=open(outputFolder+'log.txt', 'w')
 	logFile.write('orsum '+VERSION+'\n\n')
 	for k,v in argsDict.items():
 		logFile.write("{}:\t{}\n".format(k,v))
 	logFile.write('\n')
+	print('\n')
+	
+	
+	if fileAliases is None:
+		fileAliases=[]
+		for inputFile in inputEnrichmentResultFiles:
+			fileAliases.append(os.path.basename(inputFile))
+	else:
+		if len(fileAliases)!=len(inputEnrichmentResultFiles):
+			print('Number of input files and aliases do not match.\n')
+			logFile.write('Number of input files and aliases do not match.\n')
+			exit()
+			
+	if numberOfTermsToPlot > 50:
+		print('Number of terms to be plotted was greater than 50, it is changed to 50.\n')
+		logFile.write('Number of terms to be plotted was greater than 50, it is changed to 50.\n')
+		numberOfTermsToPlot = 50
+
+
+
 
 	#Read the GMT file.
 	#The GMT file contains one gene set/pathway at each line, with no header.
@@ -90,19 +101,19 @@ if __name__ == "__main__":
 	#file it doesn't matter which ID is used, only the overlaps between
 	#different gene sets are checked.
 
-	geneSetsDict, gsIDToGsNameDict=readGmtFile(gmtPath)
+	termIdToGenesDict, termIdToTermNameDict=readGmtFile(gmtPath)
 
 
 
-	tbsGsIDsList=[]
-	for tf in tbsFiles:
+	termIdsListList=[]
+	for inputFile in inputEnrichmentResultFiles:
 		print()
-		print('Processing', tf)
-		logFile.write('\nProcessing {}\n'.format(tf))
-		tbsGsIDs=readTBSListFile(tf)
+		print('Processing', inputFile)
+		logFile.write('\nProcessing {}\n'.format(inputFile))
+		termIdsList=readInputEnrichmentResultFile(inputFile)
 
-		tbsGsIDsRUT=removeUnknownTermsFromTBS(tbsGsIDs, geneSetsDict)
-		difRUT=len(tbsGsIDs)-len(tbsGsIDsRUT)
+		termIdsListRUT=removeUnknownTerms(termIdsList, termIdToGenesDict)
+		difRUT=len(termIdsList)-len(termIdsListRUT)
 		if(difRUT>1):
 			print('{} terms are not in GMT, they are removed.'.format(difRUT))
 			logFile.write('{} terms are not in GMT, they are removed.\n'.format(difRUT))
@@ -110,8 +121,8 @@ if __name__ == "__main__":
 			print('{} term is not in GMT, it is removed.'.format(difRUT))
 			logFile.write('{} term is not in GMT, it is removed.\n'.format(difRUT))
 
-		tbsGsIDsRTS=removeTermsSmallerThanMinTermSize(tbsGsIDsRUT, geneSetsDict, minTermSize)
-		difRTS=len(tbsGsIDsRUT)-len(tbsGsIDsRTS)
+		termIdsListRTS=removeTermsSmallerThanMinTermSize(termIdsListRUT, termIdToGenesDict, minTermSize)
+		difRTS=len(termIdsListRUT)-len(termIdsListRTS)
 		if(difRTS>1):
 			print('{} terms are smaller than minTermSize={}, they are removed.'.format(difRTS, minTermSize))
 			logFile.write('{} terms are smaller than minTermSize={}, they are removed.\n'.format(difRTS, minTermSize))
@@ -119,8 +130,8 @@ if __name__ == "__main__":
 			print('{} term is smaller than minTermSize={}, it is removed.'.format(difRTS, minTermSize))
 			logFile.write('{} term is smaller than minTermSize={}, it is removed.\n'.format(difRTS, minTermSize))
 		
-		tbsGsIDsRTL=removeTermsLargerThanMaxTermSize(tbsGsIDsRTS, geneSetsDict, maxTermSize)
-		difRTL=len(tbsGsIDsRTS)-len(tbsGsIDsRTL)
+		termIdsListRTL=removeTermsLargerThanMaxTermSize(termIdsListRTS, termIdToGenesDict, maxTermSize)
+		difRTL=len(termIdsListRTS)-len(termIdsListRTL)
 		if(difRTL>1):
 			print('{} terms are larger than maxTermSize={}, they are removed.'.format(difRTL, maxTermSize))
 			logFile.write('{} terms are larger than maxTermSize={}, they are removed.\n'.format(difRTL, maxTermSize))
@@ -128,17 +139,17 @@ if __name__ == "__main__":
 			print('{} term is larger than maxTermSize={}, it is removed.'.format(difRTL, maxTermSize))
 			logFile.write('{} term is larger than maxTermSize={}, it is removed.\n'.format(difRTL, maxTermSize))
 		
-		tbsGsIDsFinal=tbsGsIDsRTL.copy()
+		termIdsListFinal=termIdsListRTL.copy()
 
-		if len(tbsGsIDsFinal)==0:
+		if len(termIdsListFinal)==0:
 			print('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.')
 			logFile.write('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
 		else:
-			tbsGsIDsList.append(tbsGsIDsFinal)
+			termIdsListList.append(termIdsListFinal)
 
 	#termSummary is a list, each element is a list that contains
 	#term ID, the list of represented terms, rank
-	termSummary=initializeTermSummary(tbsGsIDsList)
+	termSummary=initializeTermSummary(termIdsListList)
 
 
 	logFile.write('\n')
@@ -153,11 +164,11 @@ if __name__ == "__main__":
 
 	print('\n\n')
 	
-	if(len(tbsGsIDsList)==0):
+	if(len(termIdsListList)==0):
 		print('There is no valid file to be summarized.')
 		logFile.write('There is no valid file to be summarized.\n')
 		exit()
-	elif(len(tbsGsIDsList)==1):
+	elif(len(termIdsListList)==1):
 		print('Initial term number: {}\n'.format(len(termSummary)))
 		logFile.write('Initial term number: {}\n\n'.format(len(termSummary)))
 	else:
@@ -166,26 +177,26 @@ if __name__ == "__main__":
 		#Apply multipleListsUnifyRule to unify the same terms from multiple lists
 		print(multipleListsUnifyRule[1])
 		logFile.write(multipleListsUnifyRule[1]+'\n')
-		termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, multipleListsUnifyRule[0])
+		termSummary=applyRule(termSummary, termIdToGenesDict, maxRepresentativeTermSize, multipleListsUnifyRule[0])
 		print('Representing term number: {}\n'.format(len(termSummary)))
 		logFile.write('Representing term number: {}\n\n'.format(len(termSummary)))
 
 	#Apply rule
 	print(supertermRepresentsLessSignificantSubtermRule[1])
 	logFile.write(supertermRepresentsLessSignificantSubtermRule[1]+'\n')
-	termSummary=applyRule(termSummary, geneSetsDict, maxRepresentativeTermSize, supertermRepresentsLessSignificantSubtermRule[0])
-	print('Representing term number:{}\n'.format(len(termSummary)))
-	logFile.write('Representing term number:{}\n\n'.format(len(termSummary)))
+	termSummary=applyRule(termSummary, termIdToGenesDict, maxRepresentativeTermSize, supertermRepresentsLessSignificantSubtermRule[0])
+	print('Representing term number: {}\n'.format(len(termSummary)))
+	logFile.write('Representing term number: {}\n\n'.format(len(termSummary)))
 
 	fileName=outputFolder+'filteredResult'
 	
 
-	writeTermSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
-	writeHTMLSummaryFile(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'.html')
+	writeTermSummaryFile(termSummary, termIdToGenesDict, termIdToTermNameDict, termIdsListList, fileAliases, fileName+'-Detailed.tsv', fileName+'-Summary.tsv')
+	writeHTMLSummaryFile(termSummary, termIdToGenesDict, termIdToTermNameDict, termIdsListList, fileAliases, fileName+'.html')
 	writeRepresentativeToRepresentedIDsFile(termSummary, fileName+'IDMapping.tsv')
 	orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot)
 
-	writeTermSummaryFileClustered(termSummary, geneSetsDict, gsIDToGsNameDict, tbsGsIDsList, fileAliases, fileName+'-SummaryClustered.tsv', numberOfTermsToPlot)
+	writeTermSummaryFileClustered(termSummary, termIdToGenesDict, termIdToTermNameDict, termIdsListList, fileAliases, fileName+'-SummaryClustered.tsv', numberOfTermsToPlot)
 	orsum_plot(fileName+'-SummaryClustered.tsv', outputFolder, numberOfTermsToPlot, heatmapName = 'HeatmapClustered')
 	os.remove(fileName+'-SummaryClustered.tsv')
 
