@@ -106,7 +106,10 @@ if __name__ == "__main__":
 
 
 	termIdsListList=[]
-	for inputFile in inputEnrichmentResultFiles:
+	fileAliasesToUse=[]
+	for i in range(len(inputEnrichmentResultFiles)):
+		inputFile=inputEnrichmentResultFiles[i]
+		fileAlias=fileAliases[i]
 		print()
 		print('Processing', inputFile)
 		logFile.write('\nProcessing {}\n'.format(inputFile))
@@ -146,11 +149,12 @@ if __name__ == "__main__":
 			logFile.write('There is no term left to be summarized from this input file. A possible reason is that IDs in the input file do not match the IDs in the GMT file. Another possible reason is setting minTermSize parameter too high. Please check your command, the GMT file and input files.\n')
 		else:
 			termIdsListList.append(termIdsListFinal)
+			fileAliasesToUse.append(fileAlias)
 
 	#termSummary is a list, each element is a list that contains
 	#term ID, the list of represented terms, rank
 	termSummary=initializeTermSummary(termIdsListList)
-
+	fileAliases=fileAliasesToUse
 
 	logFile.write('\n')
 
