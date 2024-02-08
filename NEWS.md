@@ -1,3 +1,9 @@
+# orsum 1.7.0
+
+## Bug fix
+- When using multiple enrichment results, if one input enrichment result is empty it is not added to the results. Before the fix, the file alias of the empty enrichment result persisted, causing shifting of aliases and disappearance of last alias.
+
+
 # orsum 1.6.0
 
 ## Major Changes
