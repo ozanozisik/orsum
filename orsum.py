@@ -20,7 +20,7 @@ from argparse import ArgumentParser, SUPPRESS
 import os
 
 
-VERSION='1.7.0'
+VERSION='1.8.0'
 
 
 def argumentParserFunction():
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 	if outputFolder[-1]!=os.sep:
 		outputFolder=outputFolder+os.sep
 	if not os.path.isdir(outputFolder):
-		os.mkdir(outputFolder)
+		os.makedirs(outputFolder)
 
 	logFile=open(outputFolder+'log.txt', 'w')
 	logFile.write('orsum '+VERSION+'\n\n')
@@ -114,6 +114,12 @@ if __name__ == "__main__":
 		print('Processing', inputFile)
 		logFile.write('\nProcessing {}\n'.format(inputFile))
 		termIdsList=readInputEnrichmentResultFile(inputFile)
+		
+		originalLength=len(termIdsList)
+		termIdsList=list(dict.fromkeys(termIdsList))#Removing duplicates if they exist
+		if(originalLength>len(termIdsList)):
+			print('Removed duplicate terms. First appearances of the terms determined the ranks of the terms.')
+			logFile.write('Removed duplicate terms; their first appearances were used to determine the ranks.\n')
 
 		termIdsListRUT=removeUnknownTerms(termIdsList, termIdToGenesDict)
 		difRUT=len(termIdsList)-len(termIdsListRUT)
@@ -200,8 +206,11 @@ if __name__ == "__main__":
 	writeRepresentativeToRepresentedIDsFile(termSummary, fileName+'IDMapping.tsv')
 	orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot)
 
-	writeTermSummaryFileClustered(termSummary, termIdToGenesDict, termIdToTermNameDict, termIdsListList, fileAliases, fileName+'-SummaryClustered.tsv', numberOfTermsToPlot)
-	orsum_plot(fileName+'-SummaryClustered.tsv', outputFolder, numberOfTermsToPlot, heatmapName = 'HeatmapClustered')
-	os.remove(fileName+'-SummaryClustered.tsv')
+	if(len(termSummary)>1):
+		writeTermSummaryFileClustered(termSummary, termIdToGenesDict, termIdToTermNameDict, termIdsListList, fileAliases, fileName+'-SummaryClustered.tsv', numberOfTermsToPlot)
+		orsum_plot(fileName+'-SummaryClustered.tsv', outputFolder, numberOfTermsToPlot, heatmapName = 'HeatmapClustered')
+		os.remove(fileName+'-SummaryClustered.tsv')
+	else:
+		orsum_plot(fileName+'-Summary.tsv', outputFolder, numberOfTermsToPlot, heatmapName = 'HeatmapClustered') #Creating this file in case some other application expects it
 
 	logFile.close()

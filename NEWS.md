@@ -1,3 +1,12 @@
+# orsum 1.8.0
+
+## Changes, bug fixes
+- Replaced "np.unicode_", which was removed in the NumPy 2.0 release, with "np.str_". orsum still works with previous NumPy versions.
+- Changed os.mkdir() to os.makedirs() in output folder creation, which allows nested directory creation.
+- Fixed issues related to the handling of a single representative term.
+- Added handling of duplicate terms in the input files (the first appearance is used to determine the rank).
+
+
 # orsum 1.7.0
 
 ## Bug fix

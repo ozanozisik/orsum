@@ -290,7 +290,7 @@ def writeTermSummaryFile(termSummary, termIdToGenesDict, termIdToTermNameDict, t
 		for ts in termSummary:#For each representation
 			f.write(ts[0]+'\t'+termIdToTermNameDict[ts[0]]+'\t'+str(ts[2])+'\n')
 
-			mtr=np.empty([len(ts[1]), len(termIdsListList)*3],dtype=(np.unicode_, 10000))
+			mtr=np.empty([len(ts[1]), len(termIdsListList)*3],dtype=(np.str_, 10000))
 			row=0
 			for representedTerm in ts[1]:#For each represented term
 				for termIdsListNo in range(len(termIdsListList)):#For each input enrichment result

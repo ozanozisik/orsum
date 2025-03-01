@@ -102,7 +102,7 @@ def orsum_barplot(df, nbTerm, sizeMax, sizeMin, plotName, ticks):
 	sns.set_theme(style = 'whitegrid')
 	sns.set_context('paper', font_scale = 1.1)
 	plt.figure(figsize = (10, 10))
-	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', color = df_filt['colors'][1])
+	ax = sns.barplot(data = df_filt, x = 'sizes', y = 'labels', edgecolor = 'white', color = df_filt['colors'][0])
 	# Labels
 	plt.title('Top {} representative terms'.format(nbTerm), fontsize = 20)
 	plt.xlabel('Number of represented terms', fontsize = 15)
